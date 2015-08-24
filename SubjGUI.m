@@ -1,4 +1,4 @@
-function repeaterGUI
+function SubjGUI
          
     iTrial = 1;
     
@@ -22,7 +22,7 @@ function repeaterGUI
     
     function runNextTrial(~,~)
         
-        scorerGUI(VU_zinnen_vrouw{rndSequence(iTrial)}, subID, rndSequence(iTrial), iTrial);
+        ExperimenterGUI(VU_zinnen_vrouw{rndSequence(iTrial)}, subID, rndSequence(iTrial), iTrial);
         iTrial = iTrial + 1;
         
         if iTrial >1    
