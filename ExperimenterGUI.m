@@ -9,8 +9,8 @@ function ExperimenterGUI(sentence, SubID, sentenceNum, iTrial)
     screen.xCenter = round(screen.width / 2);
     screen.yCenter = round(screen.height / 2);
 
-    minBottonWidth = 20;
-    disp.width = minBottonWidth * length(sentence) + 100; % 100 is an arbitrary boundary
+    minButtonWidth = 20;
+    disp.width = minButtonWidth * length(sentence) + 100; % 100 is an arbitrary boundary
     disp.height = 400;
     disp.Left = screen.left + screen.xCenter - (disp.width / 2);
 
@@ -19,29 +19,29 @@ function ExperimenterGUI(sentence, SubID, sentenceNum, iTrial)
     f = figure('Visible','off','Position',[disp.Left, disp.Up, disp.width, disp.height], ...
         'Toolbar', 'none', 'Menubar', 'none', 'NumberTitle', 'off');
 
-    %  Construct the bottons.
+    %  Construct the buttons.
     
     buttonName = strsplit(sentence, ' '); % words
     nButtons = length(buttonName);
-    bottonheight= 50;
+    buttonheight= 50;
     
-    bottonYpos = round(disp.height /2) - round(bottonheight / 2);
+    buttonYpos = round(disp.height /2) - round(buttonheight / 2);
     
     for iButton = 1 : nButtons
-        bottonWidth = minBottonWidth * length(buttonName{iButton}); % width botton proportional to number of characters in string
+        buttonWidth = minButtonWidth * length(buttonName{iButton}); % width botton proportional to number of characters in string
         Box.(buttonName{iButton}) = uicontrol('Style','pushbutton','String', buttonName{iButton},...
-            'Position',[(disp.width * iButton/(nButtons + 1) - round(bottonWidth / 2)), bottonYpos, bottonWidth, bottonheight],...
+            'Position',[(disp.width * iButton/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos, buttonWidth, buttonheight],...
             'Callback',@keysCallback, 'Visible', 'On');
     end
     
-    bottonWidth = minBottonWidth * length('CONTINUE');
+    buttonWidth = minButtonWidth * length('CONTINUE');
 
     Box.continue = uicontrol('Style','pushbutton','String', 'CONTINUE',...
-            'Position',[(disp.width * iButton/(nButtons + 1) - round(bottonWidth / 2)), bottonYpos - 2*bottonheight, bottonWidth, bottonheight],...
+            'Position',[(disp.width * iButton/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos - 2*buttonheight, buttonWidth, buttonheight],...
             'Callback',@(hObject,callbackdata) continueCallback(SubID), 'Visible', 'On');
     
     Box.play = uicontrol('Style','pushbutton','String', 'PLAY',...
-            'Position',[(disp.width * 1/(nButtons + 1) - round(bottonWidth / 2)), bottonYpos - 2*bottonheight, bottonWidth, bottonheight],...
+            'Position',[(disp.width * 1/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos - 2*buttonheight, buttonWidth, buttonheight],...
             'Callback',@playSnd, 'Visible', 'On');    
     
     % Initialize the GUI.

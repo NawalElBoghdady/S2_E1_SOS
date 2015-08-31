@@ -1,14 +1,44 @@
 function [expe, options] = expe_build_conditions(options)
 
-
-options.instructions.training = ['We want to test your understanding of speech in the presence of another speaker.\n'...
+options.instructions.start = ['We want to test your understanding of speech in the presence of another speaker.\n'...
     'The target sentence you have to repeat will start half a second after the masking speech.\n'...
     'The background speech will be made of chopped up words that should not make much sense.\n'...
-    'Your task is to repeat the target sentence. Your responses will be recorded for further analyses.\n\n'...
+    'Your task is to repeat the target sentence. Your spoken responses will be recorded for further analyses.\n\n'...
     '-------------------------------------------------\n\n'...
     ''];
 
-options.instructions.test = options.instructions.training;
+options.instructions.training1 = ['You will now listen to ONLY the target speaker \n'...
+    'just to get acquainted with how he/she sounds like.\n Please repeat the sentence.\n\n'...
+    '-------------------------------------------------\n\n'...
+    ''];
+
+options.instructions.training2 = ['You will now listen to samples of BOTH the target speaker AND \n'...
+    'the masker just to get used to the task.\n Please repeat the target sentence.\n\n'...
+    '-------------------------------------------------\n\n'...
+    ''];
+options.instructions.test = ['You will now begin the actual test.\n'...
+    'The target sentence you have to repeat will start half a second after the masking speech.\n'...
+    'The background speech will be made of chopped up words that should not make much sense.\n'...
+    'Your task is to repeat the target sentence. Your spoken responses will be recorded for further analyses.\n\n'...
+    '-------------------------------------------------\n\n'...
+    ''];
+
+options.instructions.vocoded = ['All the following sounds will now be a simulation of what\n'...
+    'Cochlear Implant subjects hear. For this reason, all sounds will be very distorted.\n\n'...
+    '-------------------------------------------------\n\n'];
+
+options.instructions.listen = ['Listen carefully to the target sentence.\n\n'...
+    '-------------------------------------------------\n\n'];
+
+options.instructions.repeat = ['Now repeat the target sentence.\n\n'...
+    '-------------------------------------------------\n\n'];
+
+options.instructions.feedback = ['This is the correct sentence.\n\n'...
+    '-------------------------------------------------\n'];
+
+
+
+
 
 test_machine = is_test_machine();
 
@@ -37,7 +67,7 @@ end
 options.ear = 'both'; % right, left or both
 
 %% ----------- Design specification
-options.test.n_repeat = 3; % Number of repetition per condition
+options.test.n_repeat = 3; % Number of repetitions per condition
 
 %% ----------- Stimuli options
 %options.test.f0s  = [242, 121, round(242*2^(5/12))]; 
@@ -72,12 +102,14 @@ options.test.voices(7).f0 = options.test.voices(1).f0;
 options.test.voices(7).ser = 2^(15/12);
 
 options.training.voices = options.test.voices;
+options.training.nsentences = 3; %number of training sentences per condition.
 
 %--- Define sentence bank for each stimulus type: 
-options.trainSentences = [1 147];   %training sentences (target)
-options.testS1 = [148 294];         %test sentences Session 1 (target)
-options.testS2 = [295 441];         %test sentences Session 2 (target)
-options.masker = [442 507];         %masker sentences training+test all sessions
+options.trainSentences = [1 147];               %training sentences (target)
+options.testS1 = [148 294];                     %test sentences Session 1 (target)
+options.testS2 = [295 441];                     %test sentences Session 2 (target)
+options.masker = [442 507];                     %masker sentences training+test all sessions
+options.sentence_bank = 'VU_zinnen_vrouw.mat';  %Where all sentences in the vrouw database are stored as string.
 %options.TMR = 
 %This protocol was adopted from Mike and Nikki's Musician effect on SOS
 %performance

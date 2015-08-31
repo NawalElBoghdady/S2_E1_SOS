@@ -1,22 +1,22 @@
-function [target,masker,fs] = expe_make_stim(options,trial,phase)
+function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase)
 
     %phase needs to switch between training 1 (no masker), training 2 (masker)
     %and test. This parameter is set in expe_main.
     
     if strcmp(phase, 'training1')
         
-        [target,fs] = createTarget(options,trial,phase);
+        [target,sentence,fs] = createTarget(options,trial,phase);
         masker = zeros(length(target),1);
         
     elseif strcmp(phase, 'training2')
         
-        [target,fs] = createTarget(options,trial,phase);
-        [masker,fs] = createMasker(options,target,fs);
+        [target,sentence,fs] = createTarget(options,trial,phase);
+        [masker,target,fs] = createMasker(options,target,fs);
         
     elseif strcmp(phase, 'test')
         
-        [target,fs] = createTarget(options,trial,phase);
-        [masker,fs] = createMasker(options,target,fs);
+        [target,sentence,fs] = createTarget(options,trial,phase);
+        [masker,target,fs] = createMasker(options,target,fs);
         
     end
     
@@ -29,7 +29,7 @@ function [target,masker,fs] = expe_make_stim(options,trial,phase)
 
 end
 
-function [target,fs] = createTarget(options,trial,phase)
+function [target,sentence,fs] = createTarget(options,trial,phase)
 
     %Straight processing happens here!
     
@@ -54,7 +54,7 @@ function [target,fs] = createTarget(options,trial,phase)
     f0 = options.test.voices(trial.dir_voice).f0;
     ser = options.test.voices(trial.dir_voice).ser;
     
-    [y,fs] = straight_process(sentence, f0, ser, options, trial.session, trial.vocoder);
+    [y,fs] = straight_process(sentence, f0, ser, options, trial.vocoder);
     
     if trial.vocoder > 0
             
@@ -68,16 +68,16 @@ function [target,fs] = createTarget(options,trial,phase)
         m = max(abs(min(x)),max(x)) + 0.001;
         x = x./m;
 
-        switch options.ear
-            case 'right'
-                x  = [zeros(size(x)), x];
-            case 'left'
-                x = [x, zeros(size(x))];
-            case 'both'
-                x = repmat(x, 1, 2);
-            otherwise
-                error(sprintf('options.ear="%s" is not implemented', options.ear));
-        end
+%         switch options.ear
+%             case 'right'
+%                 x  = [zeros(size(x)), x];
+%             case 'left'
+%                 x = [x, zeros(size(x))];
+%             case 'both'
+%                 x = repmat(x, 1, 2);
+%             otherwise
+%                 error(sprintf('options.ear="%s" is not implemented', options.ear));
+%         end
         
         target = x;
     else
@@ -139,35 +139,41 @@ function [masker,target,fs] = createMasker(options,target,fs)
     end
     
     %Set masker length = target length:
-    if length(masker) > length(target)
+    if length(masker) >= length(target)
       
         masker = masker(1:length(target)); %chop it off if it is too long
       
     elseif length(masker) < length(target)
         
-        masker = [masker; masker];
-        masker = masker(1:length(target)); %sloppy solution! Must make it more robust!
+        while length(masker) < length(target)
+            masker = [masker; masker];
+        end
+        masker = masker(1:length(target)); 
+        
+        if length(masker) ~= length(target)
+            error('We have a problem!!!');
+        end
         
     end
     
-    switch options.ear
-        case 'right'
-            masker  = [zeros(size(masker)), masker];
-        case 'left'
-            masker = [masker, zeros(size(masker))];
-        case 'both'
-            masker = repmat(masker, 1, 2);
-        otherwise
-            error(sprintf('options.ear="%s" is not implemented', options.ear));
-    end
+%     switch options.ear
+%         case 'right'
+%             masker  = [zeros(size(masker)), masker];
+%         case 'left'
+%             masker = [masker, zeros(size(masker))];
+%         case 'both'
+%             masker = repmat(masker, 1, 2);
+%         otherwise
+%             error(sprintf('options.ear="%s" is not implemented', options.ear));
+%     end
     
 
 end
 
-function [y, fs] = straight_process(sentence, t_f0, ser, options, session, vocoder)
+function [y, fs] = straight_process(sentence, t_f0, ser, options, vocoder)
 
     wavIn = fullfile(options.sound_path, [num2str(sentence), '.wav']);
-    wavOut = make_fname(vocoder, session, wavIn, t_f0, ser, options.tmp_path);
+    wavOut = make_fname(vocoder, wavIn, t_f0, ser, options.tmp_path);
 
     if ~exist(wavOut, 'file')
 
@@ -210,12 +216,12 @@ function [y, fs] = straight_process(sentence, t_f0, ser, options, session, vocod
     end
 end
 
-function fname = make_fname(vocoder, session, wav, f0, ser, destPath)
+function fname = make_fname(vocoder, wav, f0, ser, destPath)
 
-%make_fname(session, wavIn, t_f0, ser, options.tmp_path);
     [~, name, ext] = fileparts(wav);
     
-    fname = sprintf('%s_%s_%s_GPR%d_SER%.2f', ['S' num2str(session)],['Voc-' vocoder] ,['Sentence-' name], floor(f0), ser);
+    %fname = sprintf('%s_%s_%s_GPR%d_SER%.2f', ['S' num2str(session)],['Voc-' vocoder] ,['Sentence-' name], floor(f0), ser);
+    fname = sprintf('Sentence%s_Voc%s_GPR%d_SER%.2f', name, num2str(vocoder) , floor(f0), ser);
    
     fname = fullfile(destPath, [fname, ext]);
 end
