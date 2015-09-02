@@ -4,7 +4,11 @@ function h = initSubjGUI(options)
     
     h = struct();
     
-    scrsz = get(0,'ScreenSize');
+    scrsz = get(0,'MonitorPositions');
+    
+    if size(scrsz,1) > 1
+        scrsz = scrsz(1,:); %select the first row which should correspond to the subject's screen.
+    end
     
     fntsze = 20;
     
@@ -20,6 +24,7 @@ function h = initSubjGUI(options)
     n_cols = 3; 
     grid_sz = [n_cols, n_rows]*300;
     
+    %Progress bar params
     h.main_text_color = [1 1 1]*.9;
     h.background_color = [.6 .6 .6];
     h.progress_bar_color = [.5 .8 .5];
@@ -30,7 +35,7 @@ function h = initSubjGUI(options)
         'Toolbar', 'none', 'Menubar', 'none', 'NumberTitle', 'off');
     
     h.instructions = uicontrol('Style', 'text', 'Units', 'pixel',...
-        'Position', [width/2-grid_sz(1)/2, height/2+10, grid_sz(1), 100], ...
+        'Position', [width/2-grid_sz(1)/2, height/2+30, grid_sz(1), 100], ...
         'HorizontalAlignment', 'center', 'FontSize', fntsze);
     
     % Progress bar
@@ -52,7 +57,7 @@ function h = initSubjGUI(options)
     
     h.hide_instruction = @() set(h.instructions, 'Visible', 'off');
     h.show_instruction = @() set(h.instructions, 'Visible', 'on');
-    h.set_instruction = @(t) set(h.instructions, 'String', t);
+    h.set_instruction = @(t) set_instruction(h,t);
     
     h.set_hstart_text = @(t) set(h.hstart, 'String', t);
     h.hide_start = @() set(h.hstart, 'Visible', 'off');
@@ -64,6 +69,14 @@ function h = initSubjGUI(options)
     h.disable_start = @() set(h.hstart,'Enable','off');
     h.enable_start = @() set(h.hstart,'Enable','on');
    
+    
+    
+    function set_instruction(h,t)
+        
+        instr = textwrap(h.instructions, {t}); 
+        set(h.instructions, 'String', instr);
+        
+    end
     
     function set_progress(h, t, i, n)
 

@@ -20,6 +20,11 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase)
         
     end
     
+    %Set masker RMS:
+    rmsM = rms(masker);
+    rmsT = rms(target);
+    masker = masker./rmsM.*(rmsT/10^(options.TMR/20));
+    
     
     
      %Set target-to-masker ratio (TMR): => this needs to be moved to
@@ -56,33 +61,7 @@ function [target,sentence,fs] = createTarget(options,trial,phase)
     
     [y,fs] = straight_process(sentence, f0, ser, options, trial.vocoder);
     
-    if trial.vocoder > 0
-            
-        [x, fs] = vocode(y, fs, options.vocoder(trial.vocoder).parameters);
-
-        x = x(:);
-
-        
-        %This prevents the wavwrite from clipping the data
-        
-        m = max(abs(min(x)),max(x)) + 0.001;
-        x = x./m;
-
-%         switch options.ear
-%             case 'right'
-%                 x  = [zeros(size(x)), x];
-%             case 'left'
-%                 x = [x, zeros(size(x))];
-%             case 'both'
-%                 x = repmat(x, 1, 2);
-%             otherwise
-%                 error(sprintf('options.ear="%s" is not implemented', options.ear));
-%         end
-        
-        target = x;
-    else
-        target = y;
-    end
+    target = y;
                                                             
     
     

@@ -13,30 +13,20 @@ function expe_main(options, session)
 %Provide starting instructions
     instr = strrep(options.instructions.start, '\n', sprintf('\n'));
     if ~isempty(instr)
-        scrsz = get(0,'ScreenSize');
-        if ~test_machine
-            left=scrsz(1); bottom=scrsz(2); width=scrsz(3); height=scrsz(4);
-        else
-            left = -1024; bottom=0; width=1024; height=768;
-        end
-        scrsz = [left, bottom, width, height];
+        
+        h = initSubjGUI(options);
 
-        msg = struct();
-        msgw = 900;
-        msgh = 650;
-        mr = 60;
-        msg.w = figure('Visible', 'off', 'Position', [left+(width-msgw)/2, (height-msgh)/2, msgw, msgh], 'Menubar', 'none', 'Resize', 'off', 'Color', [1 1 1]*.9, 'Name', 'Instructions');
+        drawnow()
+        
+        h.set_instruction(instr);
+        h.set_hstart_text('START');
 
-        msg.txt = uicontrol('Style', 'text', 'Position', [mr, 50+mr*2, msgw-mr*2, msgh-(50+mr)-mr*2], 'Fontsize', 18, 'HorizontalAlignment', 'left', 'BackgroundColor', [1 1 1]*.9);
+        movegui(h.f,'center')
+        h.make_visible(); 
 
-        instr = textwrap(msg.txt, {instr});
-        set(msg.txt, 'String', instr);
-        msg.bt = uicontrol('Style', 'pushbutton', 'Position', [msgw/2-50, mr, 100, 50], 'String', 'OK', 'Fontsize', 14, 'Callback', 'uiresume');
-        set(msg.w, 'Visible', 'on');
-        uicontrol(msg.bt);
+        uicontrol(h.hstart);
+        uiwait(h.f);
 
-        uiwait(msg.w);
-        close(msg.w);
     end
     
     
@@ -44,30 +34,27 @@ function expe_main(options, session)
 
     beginning_of_session = now();
 
-    rng('shuffle');
-
     %=============================================================== MAIN LOOP
     
-    this_session = find([expe.test.conditions.session] == 1);
+    this_session = [expe.test.conditions.session] == session;
     not_done = [expe.test.conditions(this_session).done];
+    total_trials = length(not_done);
     
     prev_dir_voice = [];
+    vocoded_section = 0;
     
-    h = initSubjGUI(options);
-
-    drawnow()
     
     [~,name,ext] = fileparts(options.sentence_bank);
     sentences = load(options.sentence_bank,name);
     sentences = sentences.(name);
+    
+    %for vocoder = unique([expe.test.conditions.vocoder])
 
-    while mean(not_done)~=1  % Keep going while there are some conditions in this session left to do
+        while mean([expe.test.conditions(this_session).done])~=1  % Keep going while there are some conditions in this session left to do
 
-        for vocoder = unique([expe.test.conditions.vocoder])
-        
             % Find first condition not done
-            i_condition = find([expe.test.conditions.done]==0 & [expe.test.conditions.session] == session...
-                & [expe.test.conditions.vocoder] == vocoder, 1);
+            i_condition = find([expe.test.conditions.done]==0 & [expe.test.conditions.session] == session, 1);
+                %& [expe.test.conditions.vocoder] == vocoder, 1);
             fprintf('\n============================ Testing condition %d / %d ==========\n', i_condition, length(expe.test.conditions))
             condition = expe.test.conditions(i_condition);
 
@@ -81,7 +68,19 @@ function expe_main(options, session)
 
     %% Training phase:
             if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
+                
+                if (condition.vocoder > 0) && (vocoded_section == 0)
+                    vocoded_section = 1; %display instructions once vocoded section begins
+                    instr = strrep(options.instructions.vocoded, '\n', sprintf('\n'));
+                    h.set_instruction(instr);
+                    h.set_hstart_text('CONTINUE');
+                    h.enable_start();
+                    h.show_start();
+                    uicontrol(h.hstart);
+                    uiwait(h.f);
+                end
 
+                
                 %1. Train on target WITHOUT masker:
                 tic
                 phase = 'training1';
@@ -92,36 +91,66 @@ function expe_main(options, session)
                 phase = 'training2';
                 playTrain(h, options,condition,phase,1,sentences);
                 
-                toc        
-            else
-                   
+                toc
+                
                 %3. Begin actual test. Control the experiment flow from another
                 %gui 'g':
                 phase = 'test';
+                h.set_progress(strrep(phase, '_', ' '), i_condition, total_trials);
                 instr = strrep(options.instructions.( phase ), '\n', sprintf('\n'));
                 h.hide_instruction();
                 h.set_instruction(instr);
                 h.show_instruction();
                 h.set_hstart_text('CONTINUE');
+                uiwait(h.f);
+                pause(0.5)
+            
+                   
             end
             
+            
+                     
+            %Construct Experimenter GUI 'g':
+            g = initExpGUI(expe,options); %construct experimenter gui.
+            set(0,'currentfigure',g.f);
+            g.set_progress(strrep(phase, '_', ' '), i_condition, total_trials);
+            
+            %Create Stimulus:
+            [target,masker,sentence,fs] = expe_make_stim(options,condition,phase);
+            xOut = (target+masker)*10^(-options.attenuation_dB/20);
+            
+            %Vocode as necessary:
+            if condition.vocoder > 0
+
+                [xOut,fs] = vocodeStimulus(xOut,fs,options,condition.vocoder);
+
+            end
+            
+            words = sentences{sentence};
+            
+            set(0,'currentfigure',g.f);
+            g.init_buttons(words);
+            
+            set(0,'currentfigure',g.f);
+            g.init_continue(words,i_condition,condition);
+            
+            set(0,'currentfigure',g.f);
+            g.init_playbutton(xOut,fs);
+            
+            
             %Continue testing the same voice dir using different sentences.
+            set(0,'currentfigure',h.f);
             h.hide_start();
+            h.set_progress(strrep(phase, '_', ' '), i_condition, total_trials);
+            
             
             %Instruct to Listen to the target:
             instr = strrep(options.instructions.listen, '\n', sprintf('\n'));
             h.hide_instruction();
             h.set_instruction(instr);
             h.show_instruction();
-            h.disable_start();
-
-            %Play stimulus:
-            [target,masker,sentence,fs] = expe_make_stim(options,condition,'training2');
-            xOut = (target+masker)*10^(-options.attenuation_dB/20);
-
-            x = audioplayer(xOut,fs,16);
-            playblocking(x);
-            pause(0.5);
+            
+            uiwait(g.f);
 
             %Instruct to Repeat the target sentence
             instr = strrep(options.instructions.repeat, '\n', sprintf('\n'));
@@ -129,18 +158,44 @@ function expe_main(options, session)
             h.set_instruction(instr);
             h.show_instruction();
             
+            %wait until experimenter is done entering the responses and
+            %saving:
+            while g.get_contFlag() == 0
+                uiwait(g.f);
+            end
+            
+            g.set_contFlag(0);
+            %close(h.f);
+            
             
             
             %keep track of the dir voice to know whether you should train
             %subjs if the dir voice changes:
             prev_dir_voice = condition.dir_voice;
             
+            %mark that this trial is done.
+            expe.test.conditions(i_condition).done = 1;
+            
+            close(g.f);
+            
             
         end
         
+        set(0,'currentfigure',h.f);
+        instr = strrep(options.instructions.end, '\n', sprintf('\n'));
+        h.hide_instruction();
+        h.set_instruction(instr);
+        h.show_instruction();
+        h.set_hstart_text('FINISH');
+        h.enable_start();
+        h.show_start();
+        
+        uiwait(h.f);
+        close(h.f);
         
         
-    end
+        
+    %end
 end
 
 function playTrain(h, options,condition,phase,feedback,sentences)
@@ -149,15 +204,16 @@ function playTrain(h, options,condition,phase,feedback,sentences)
 
     h.set_instruction(instr);
     h.set_hstart_text('CONTINUE');
+    h.enable_start();
+    h.show_start();
 
-    movegui(h.f,'center')
+    %movegui(h.f,'center')
     h.make_visible(); 
 
     uicontrol(h.hstart);
     uiwait(h.f);
 
     for i = 1:options.training.nsentences
-        %h.set_progress(strrep('Training1/2', '_', ' '), sum([expe.( phase ).conditions.done])+1, length([expe.( phase ).conditions.done]));
         h.set_progress(strrep(phase, '_', ' '), i, options.training.nsentences);
         h.set_hstart_text('NEXT');
 
@@ -168,9 +224,16 @@ function playTrain(h, options,condition,phase,feedback,sentences)
         h.show_instruction();
         h.disable_start();
 
-        %Play stimulus:
+        %Generate Masker and target:
         [target,masker,sentence,fs] = expe_make_stim(options,condition,phase);
         xOut = (target+masker)*10^(-options.attenuation_dB/20);
+        
+        %Vocode as necessary:
+        if condition.vocoder > 0
+            
+            [xOut,fs] = vocodeStimulus(xOut,fs,options,condition.vocoder);
+            
+        end
 
         x = audioplayer(xOut,fs,16);
         playblocking(x);
@@ -201,5 +264,18 @@ function playTrain(h, options,condition,phase,feedback,sentences)
         
 
     end
+
+end
+
+
+function [stim,fs] = vocodeStimulus(x,fs, options,voc)
+
+        
+        [stim, fs] = vocode(x, fs, options.vocoder(voc).parameters);          
+        stim = stim(:);
+
+        %This prevents the wavwrite from clipping the data
+        m = max(abs(min(stim)),max(stim)) + 0.001;
+        stim = stim./m;
 
 end

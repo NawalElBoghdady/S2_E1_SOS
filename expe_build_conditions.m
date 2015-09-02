@@ -16,10 +16,10 @@ options.instructions.training2 = ['You will now listen to samples of BOTH the ta
     'the masker just to get used to the task.\n Please repeat the target sentence.\n\n'...
     '-------------------------------------------------\n\n'...
     ''];
-options.instructions.test = ['You will now begin the actual test.\n'...
-    'The target sentence you have to repeat will start half a second after the masking speech.\n'...
-    'The background speech will be made of chopped up words that should not make much sense.\n'...
-    'Your task is to repeat the target sentence. Your spoken responses will be recorded for further analyses.\n\n'...
+options.instructions.test = ['You will now begin the actual test. The target sentence you have to repeat \n'...
+    'will start half a second after the masking speech. The background speech will be made of chopped up words '...
+    'that should not make much sense. Your task is to repeat the target sentence.\nYour spoken responses will be '...
+    'recorded for further analyses.\n'...
     '-------------------------------------------------\n\n'...
     ''];
 
@@ -34,6 +34,9 @@ options.instructions.repeat = ['Now repeat the target sentence.\n\n'...
     '-------------------------------------------------\n\n'];
 
 options.instructions.feedback = ['This is the correct sentence.\n\n'...
+    '-------------------------------------------------\n'];
+
+options.instructions.end = ['Congratulations!! This session is over. Thanks for participating.\n\n'...
     '-------------------------------------------------\n'];
 
 
@@ -110,7 +113,9 @@ options.testS1 = [148 294];                     %test sentences Session 1 (targe
 options.testS2 = [295 441];                     %test sentences Session 2 (target)
 options.masker = [442 507];                     %masker sentences training+test all sessions
 options.sentence_bank = 'VU_zinnen_vrouw.mat';  %Where all sentences in the vrouw database are stored as string.
-%options.TMR = 
+
+%--- Define Target-to-Masker Ratio in dB:
+options.TMR = -6;
 %This protocol was adopted from Mike and Nikki's Musician effect on SOS
 %performance
 
@@ -178,37 +183,50 @@ end
 %% Build Experimental Conditions:
 
 load VU_zinnen_vrouw.mat;
-rndSequence = randperm(length(VU_zinnen_vrouw));
+
+rng('shuffle');
+
+rndSequence = randperm(size(options.test.voice_pairs, 1));
 
 
 %================================================== Build test block
 
 test = struct();
 
-for i_vp = randperm(size(options.test.voice_pairs, 1))
-    for session = 1:2
-        for ir = 1:options.test.n_repeat
-            for i_voc = 0:length(options.vocoder) %0 to indicate non-vocoded condition
+for session = 1:2
+    
+    for i_voc = 0:length(options.vocoder) %0 to indicate non-vocoded condition
+    
+        for i_vp = rndSequence
+       
+            for ir = 1:options.test.n_repeat
+            
 
                 condition = struct();
 
-                condition.ref_voice = options.test.voice_pairs(i_vp, 1);
-                condition.dir_voice = options.test.voice_pairs(i_vp, 2);           
-
+                condition.session = session;
                 condition.vocoder = i_voc;
+                
+                condition.i_repeat = ir;
+                
+                condition.ref_voice = options.test.voice_pairs(i_vp, 1);
+                
+                condition.dir_voice = options.test.voice_pairs(i_vp, 2); 
+                
+                condition.done = 0;
 
                 condition.visual_feedback = 0;
                 
-                condition.session = session;
+                
 
-                % Do not remove these lines
-                condition.i_repeat = ir;
-                condition.done = 0;
+                
 
                 if ~isfield(test,'conditions')
-                    test.conditions = orderfields(condition);
+                    %test.conditions = orderfields(condition);
+                    test.conditions = condition;
                 else
-                    test.conditions(end+1) = orderfields(condition);
+                    %test.conditions(end+1) = orderfields(condition);
+                    test.conditions(end+1) = condition;
                 end
 
             end
