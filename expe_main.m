@@ -37,8 +37,16 @@ function expe_main(options, session)
     %=============================================================== MAIN LOOP
     
     this_session = [expe.test.conditions.session] == session;
-    not_done = [expe.test.conditions(this_session).done];
-    total_trials = length(not_done);
+    
+    %not_done = [expe.test.conditions(this_session).done];
+    
+    %Assumes you have a maximum of 2 sessions. Needs to be modified if
+    %nsessions > 2
+    if session > 1
+        total_trials = length(expe.test.conditions);
+    else
+        total_trials = length(expe.test.conditions(this_session));
+    end
     
     prev_dir_voice = [];
     vocoded_section = 0;
@@ -54,7 +62,6 @@ function expe_main(options, session)
 
             % Find first condition not done
             i_condition = find([expe.test.conditions.done]==0 & [expe.test.conditions.session] == session, 1);
-                %& [expe.test.conditions.vocoder] == vocoder, 1);
             fprintf('\n============================ Testing condition %d / %d ==========\n', i_condition, length(expe.test.conditions))
             condition = expe.test.conditions(i_condition);
 
@@ -69,7 +76,17 @@ function expe_main(options, session)
     %% Training phase:
             if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
                 
+                %Check for the beginning of the vocoded section. Include a
+                %break here:
                 if (condition.vocoder > 0) && (vocoded_section == 0)
+                    instr = strrep(options.instructions.breaktime, '\n', sprintf('\n'));
+                    h.set_instruction(instr);
+                    h.set_hstart_text('CONTINUE');
+                    h.enable_start();
+                    h.show_start();
+                    uicontrol(h.hstart);
+                    uiwait(h.f);
+                    
                     vocoded_section = 1; %display instructions once vocoded section begins
                     instr = strrep(options.instructions.vocoded, '\n', sprintf('\n'));
                     h.set_instruction(instr);

@@ -13,6 +13,7 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase)
         [target,sentence,fs] = createTarget(options,trial,phase);
         [masker,target,fs] = createMasker(options,target,fs);
         
+        
     elseif strcmp(phase, 'test')
         
         [target,sentence,fs] = createTarget(options,trial,phase);
@@ -20,10 +21,7 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase)
         
     end
     
-    %Set masker RMS:
-    rmsM = rms(masker);
-    rmsT = rms(target);
-    masker = masker./rmsM.*(rmsT/10^(options.TMR/20));
+    
     
     
     
@@ -134,6 +132,11 @@ function [masker,target,fs] = createMasker(options,target,fs)
         end
         
     end
+    
+    %Set masker RMS:
+    rmsM = rms(masker);
+    rmsT = rms(target);
+    masker = masker./rmsM.*(rmsT/10^(options.TMR/20));
     
 %     switch options.ear
 %         case 'right'

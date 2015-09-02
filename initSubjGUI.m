@@ -35,13 +35,13 @@ function h = initSubjGUI(options)
         'Toolbar', 'none', 'Menubar', 'none', 'NumberTitle', 'off');
     
     h.instructions = uicontrol('Style', 'text', 'Units', 'pixel',...
-        'Position', [width/2-grid_sz(1)/2, height/2+30, grid_sz(1), 100], ...
+        'Position', [width/2-grid_sz(1)/2, height/2-150, grid_sz(1), 200], ...
         'HorizontalAlignment', 'center', 'FontSize', fntsze);
     
     % Progress bar
-    h.waitbar = axes('Units', 'pixel', 'Position', [width/2-300, height/2+50, 600, 25], 'Box', 'off', ...%height-50
+    h.waitbar = axes('Units', 'pixel', 'Position', [width/2-300, height/2+150, 600, 25], 'Box', 'off', ...%height-50
         'XColor', 'w', 'YColor', 'w', 'XTick', [], 'YTick', []);
-    h.waitbar_legend = uicontrol('Style', 'text', 'Units', 'pixel', 'Position', [width/2-300, height/2+150, 600, 50], ...%height-101
+    h.waitbar_legend = uicontrol('Style', 'text', 'Units', 'pixel', 'Position', [width/2-300, height/2+200, 600, 50], ...%height-101
         'HorizontalAlignment', 'center', 'FontSize', fntsze, 'ForegroundColor', h.main_text_color, 'BackgroundColor', h.background_color);
     
      % Assign the a name to appear in the window title.
@@ -49,8 +49,8 @@ function h = initSubjGUI(options)
     
     h.hstart = uicontrol('Style','pushbutton',...
         'String','START','Units', 'pixel',...
-        'Position', [width/2-grid_sz(1)/2, height/2-grid_sz(2)/2, grid_sz(1), 100],...
-        'HorizontalAlignment', 'center','FontSize', fntsze-5,'Callback','uiresume');
+        'Position', [width/2-grid_sz(1)/2, height/2-grid_sz(2), grid_sz(1), 100],...
+        'HorizontalAlignment', 'center','FontSize', fntsze-5,'Callback','uiresume');%[width/2-grid_sz(1)/2, height/2-grid_sz(2)/2, grid_sz(1), 100]
     
     
     %-------ACTIONS:

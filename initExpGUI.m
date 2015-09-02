@@ -42,10 +42,10 @@ function h = initExpGUI(expe,options)
     
     %Define buttons:
     h.Box.continue = uicontrol('Style','pushbutton','String', 'CONTINUE',...
-            'Position',[width/2-grid_sz(1)/2, height/2-grid_sz(2), grid_sz(2), 100],...
+            'Position',[width/2-grid_sz(1)/50, height/2-grid_sz(2), grid_sz(2), 100],...
             'Enable','off', 'Visible', 'On');
     h.Box.play = uicontrol('Style','pushbutton','String', 'PLAY',...
-            'Position',[width/2-grid_sz(1)/50, height/2-grid_sz(2), grid_sz(2), 100], 'Visible', 'On');
+            'Position',[width/2-grid_sz(1)/2, height/2-grid_sz(2), grid_sz(2), 100], 'Visible', 'On');
     
     %Actions:
     h.init_buttons = @(s) init_buttons(s);
@@ -69,25 +69,53 @@ function h = initExpGUI(expe,options)
     %% Helper functions:
     function init_buttons(sentence)
         
-        minButtonWidth = 20;
+        %minButtonWidth = 20;
         buttonName = strsplit(sentence, ' '); % words
+        
+        %Check if white spaces remain because this might cause an error
+        %later:
+        problematic = strcmp(buttonName,'');
+        
+        if sum(problematic) > 0
+            
+         buttonName = buttonName(~problematic);   
+            
+        end
+        
         nButtons = length(buttonName);
-        buttonheight= 50;
-        dispwidth = minButtonWidth * length(sentence) + 100; % 100 is an arbitrary boundary
-        dispheight = 400;
-        %buttonYpos = round(dispheight /2) - round(buttonheight / 2);
-        buttonYpos = round(dispheight) - round(buttonheight);
+%         buttonheight= 50;
+%         dispwidth = minButtonWidth * length(sentence) + 100; % 100 is an arbitrary boundary
+%         dispheight = 400;
+%         buttonYpos = round(dispheight) - round(buttonheight);
+        
+        xPos = (0.05:0.1:1.5)';
+        %yPos = (0.91:-0.1:0);
+        yPos = 0.5;
+        [X,Y] = meshgrid(xPos,yPos);
 
-        for iButton = 1 : nButtons
-            buttonWidth = minButtonWidth * length(buttonName{iButton}); % width button proportional to number of characters in string
-%             h.Box.(buttonName{iButton}) = uicontrol('Style','pushbutton','Units','pixels','String', buttonName{iButton},...
+        buttonwidth = 0.08;
+        buttonheight = 0.08;
+        for iButton = 1:nButtons
+            try
+               h.Box.(buttonName{iButton}) = uicontrol('Style','togglebutton','Units','normalized',...
+                          'String', buttonName{iButton},...
+                          'Position',[X(iButton),Y(iButton),buttonwidth,buttonheight],'Value', 0, 'Visible', 'On');
+            catch
+                disp('----------');
+                disp('Sentence:');
+                disp(sentence);
+                disp('----------');
+                
+            end
+        end %for
+
+%         for iButton = 1 : nButtons
+%             buttonWidth = minButtonWidth * length(buttonName{iButton}); % width button proportional to number of characters in string
+% 
+%             h.Box.(buttonName{iButton}) = uicontrol('Style','togglebutton','Units','pixels','String', buttonName{iButton},...
 %                 'Position',[(dispwidth * iButton/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos, buttonWidth, buttonheight],...
-%                 'Callback',@keysCallback, 'Visible', 'On');
-
-            h.Box.(buttonName{iButton}) = uicontrol('Style','togglebutton','Units','pixels','String', buttonName{iButton},...
-                'Position',[(dispwidth * iButton/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos, buttonWidth, buttonheight],...
-                'Value', 0, 'Visible', 'On');
-        end 
+%                 'Value', 0, 'Visible', 'On');
+%         end 
         
     end
 
@@ -118,20 +146,6 @@ function h = initExpGUI(expe,options)
     end
 
     %% Callbacks:
-%     function keysCallback(source,evt)
-%         
-%         %repeatedWords{ipush} = source.String;
-%         %ipush = ipush + 1;
-%         
-%         %Toggle button press:
-%         if get(h.Box.(source.String),'Value') == 1 %if word is selected: 
-%             set(h.Box.(source.String),'enable','off'); %select it
-%         else
-%             set(h.Box.(source.String),'enable','on'); %else, unselect it 
-%         end
-%             
-%         
-%     end
 
     function continueCallback(expe,options,sentence,i_condition,trial)
         
@@ -141,6 +155,17 @@ function h = initExpGUI(expe,options)
         results_exist = ismember('results', {vars.name});
         
         words = strsplit(sentence, ' ');
+        
+        %Check if white spaces remain because this might cause an error
+        %later:
+        problematic = strcmp(words,'');
+        
+        if sum(problematic) > 0
+            
+         words = words(~problematic);   
+            
+        end
+        
         repeatedWords = [];
         
         for i = 1:length(words)
