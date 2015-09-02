@@ -91,6 +91,8 @@ function [masker,target,fs] = createMasker(options,target,fs)
     
     masker = [];
     
+    %instead of concatenating the whole masker, concatenate new chunks.
+    
     for i = 1:nsentences
         
         [y,fs] = audioread([stim_dir '/' num2str(sentence_bank(i)) '.wav']);
@@ -108,7 +110,7 @@ function [masker,target,fs] = createMasker(options,target,fs)
         chunk = y(chunk_ind(1):chunk_ind(2));
         
         %Apply cosine ramp:
-        chunk = cosgate(chunk, fs, 2e-3);
+        chunk = cosgate(chunk, fs, 2e-3); %2ms cosine ramp.
         
         masker = [masker; chunk];
             

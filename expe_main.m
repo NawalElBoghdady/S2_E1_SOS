@@ -60,10 +60,14 @@ function expe_main(options, session)
 
         while mean([expe.test.conditions(this_session).done])~=1  % Keep going while there are some conditions in this session left to do
 
+            timestamp = now();
             % Find first condition not done
             i_condition = find([expe.test.conditions.done]==0 & [expe.test.conditions.session] == session, 1);
             fprintf('\n============================ Testing condition %d / %d ==========\n', i_condition, length(expe.test.conditions))
             condition = expe.test.conditions(i_condition);
+            
+            %Always get timestamp for each trial.
+            condition.timestamp = timestamp;
 
             if condition.vocoder==0
                 fprintf('No vocoder\n\n');

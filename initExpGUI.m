@@ -149,6 +149,7 @@ function h = initExpGUI(expe,options)
 
     function continueCallback(expe,options,sentence,i_condition,trial)
         
+        response_time = toc();
         %check if 'results' field exists:
         filename = options.res_filename;
         vars = whos('-file',filename);
@@ -191,6 +192,9 @@ function h = initExpGUI(expe,options)
             results(i_condition).f0 = options.test.voices(trial.dir_voice).f0;
             results(i_condition).ser = options.test.voices(trial.dir_voice).ser;
             
+            results(i_condition).trial_timestamp = trial.timestamp;
+            results(i_condition).response_time = response_time;
+            
         else
             results.words = repeatedWords;
             results.sentence = sentence;
@@ -199,6 +203,9 @@ function h = initExpGUI(expe,options)
             results.label = options.test.voices(trial.dir_voice).label;
             results.f0 = options.test.voices(trial.dir_voice).f0;
             results.ser = options.test.voices(trial.dir_voice).ser;
+            
+            results.trial_timestamp = trial.timestamp;
+            results.response_time = response_time;
         end
         expe.test.conditions(i_condition).done = 1;
         save(filename,'expe','options','results');
@@ -216,6 +223,7 @@ function h = initExpGUI(expe,options)
         set(h.Box.continue,'Enable','on');
         set(h.Box.play,'Enable','off');
         uiresume(h.f);
+        tic();
         
     end
 

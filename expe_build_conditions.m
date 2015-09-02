@@ -1,5 +1,9 @@
 function [expe, options] = expe_build_conditions(options)
+% Creates the options and expe structs. Those contain all conditions and
+% params that are needed for the experiment.
 
+
+%% ----------- Create Instructions
 options.instructions.start = ['We want to test your understanding of speech in the presence of another speaker.\n'...
     'The target sentence you have to repeat will start half a second after the masking speech.\n'...
     'The background speech will be made of chopped up words that should not make much sense.\n'...
@@ -74,7 +78,7 @@ end
 options.ear = 'both'; % right, left or both
 
 %% ----------- Design specification
-options.test.n_repeat = 3; % Number of repetitions per condition
+options.test.nsentences = 4; % Number of test sentences per condition
 
 %% ----------- Stimuli options
 %options.test.f0s  = [242, 121, round(242*2^(5/12))]; 
@@ -86,7 +90,7 @@ options.test.voices(1).ser = 1;
 
 options.test.voices(2).label = 'child-vtl-0';
 options.test.voices(2).f0 = options.test.voices(1).f0;
-options.test.voices(2).ser = 1;
+options.test.voices(2).ser = 2^(0/12);
 
 options.test.voices(3).label = 'child-vtl-0p75';
 options.test.voices(3).f0 = options.test.voices(1).f0;
@@ -94,7 +98,7 @@ options.test.voices(3).ser = 2^(0.75/12);
 
 options.test.voices(4).label = 'child-vtl-1p5';
 options.test.voices(4).f0 = options.test.voices(1).f0;
-options.test.voices(4).ser = 2^(1.75/12);
+options.test.voices(4).ser = 2^(1.5/12);
 
 options.test.voices(5).label = 'child-vtl-4';
 options.test.voices(5).f0 = options.test.voices(1).f0;
@@ -111,18 +115,6 @@ options.test.voices(7).ser = 2^(15/12);
 options.training.voices = options.test.voices;
 options.training.nsentences = 3; %number of training sentences per condition.
 
-%--- Define sentence bank for each stimulus type: 
-options.trainSentences = [1 147];               %training sentences (target)
-options.testS1 = [148 294];                     %test sentences Session 1 (target)
-options.testS2 = [295 441];                     %test sentences Session 2 (target)
-options.masker = [442 507];                     %masker sentences training+test all sessions
-options.sentence_bank = 'VU_zinnen_vrouw.mat';  %Where all sentences in the vrouw database are stored as string.
-
-%--- Define Target-to-Masker Ratio in dB:
-options.TMR = -6;
-%This protocol was adopted from Mike and Nikki's Musician effect on SOS
-%performance
-
 %--- Voice pairs
 % [ref_voice, dir_voice]
 options.test.voice_pairs = [...
@@ -133,6 +125,43 @@ options.test.voice_pairs = [...
     1 6;  % Female -> Child VTL 9 ST
     1 7]; % Female -> Child VTL 15 ST
 options.training.voice_pairs = options.test.voice_pairs;
+
+%% --- Define sentence bank for each stimulus type:
+
+%1. Define the lists:
+options.sentence_bank = 'VU_zinnen_vrouw.mat';  %Where all sentences in the vrouw database are stored as string.
+options.list = {''};
+[~,name,~] = fileparts(options.sentence_bank);
+sentences = load(options.sentence_bank,name);
+sentences = sentences.(name);
+
+
+for i = 1:13:length(sentences)
+    if i == 1
+        options.list{end} = [i i+12];
+    else
+        options.list{end+1} = [i i+12];
+    end
+end
+
+%2. Define the sentence bank for each stimulus type:
+options.trainSentences = [options.list{1}(1) options.list{2}(2)];              %training sentences (target)
+options.testS1 = [options.list{3}(1) options.list{11}(2)];                     %test sentences Session 1 (target)
+options.testS2 = [options.list{12}(1) options.list{20}(2)];                    %test sentences Session 2 (target)
+options.masker = [options.list{27}(1) options.list{31}(2)];                    %masker sentences training+test all sessions
+
+% options.trainSentences = [1 147];               %training sentences (target)
+% options.testS1 = [148 294];                     %test sentences Session 1 (target)
+% options.testS2 = [295 441];                     %test sentences Session 2 (target)
+% options.masker = [442 507];                     %masker sentences training+test all sessions
+
+
+%--- Define Target-to-Masker Ratio in dB:
+options.TMR = -6;
+%This protocol was adopted from Mike and Nikki's Musician effect on SOS
+%performance
+
+
 
 %% --- Vocoder options
 
@@ -186,24 +215,33 @@ end
 
 %% Build Experimental Conditions:
 
-load VU_zinnen_vrouw.mat;
+%load VU_zinnen_vrouw.mat;
 
 rng('shuffle');
 
 rndSequence = randperm(size(options.test.voice_pairs, 1));
 
+ 
 
 %================================================== Build test block
 
 test = struct();
 
+s = 1; %counter for indexing sent_seq
+
 for session = 1:2
+    
+    
+    bank = ['testS' num2str(session)];   
+    sent_seq = options.(bank)(1):options.(bank)(2);
+   
+    rand_sent_seq = datasample(sent_seq,length(sent_seq),'Replace',false); %shuffle the order of the sentences
     
     for i_voc = 0:length(options.vocoder) %0 to indicate non-vocoded condition
     
         for i_vp = rndSequence
        
-            for ir = 1:options.test.n_repeat
+            for ir = 1:options.test.nsentences
             
 
                 condition = struct();
@@ -211,7 +249,7 @@ for session = 1:2
                 condition.session = session;
                 condition.vocoder = i_voc;
                 
-                condition.i_repeat = ir;
+                condition.test_sentence = rand_sent_seq(s);
                 
                 condition.ref_voice = options.test.voice_pairs(i_vp, 1);
                 
@@ -220,6 +258,8 @@ for session = 1:2
                 condition.done = 0;
 
                 condition.visual_feedback = 0;
+                
+                s = s+1; %increment the counter.
                 
                 
 
