@@ -1,6 +1,6 @@
-function h = initExpGUI(expe,options)
-   
-    h = struct();
+function h = score_offline_GUI(expe,options)
+
+h = struct();
     
     scrsz = get(0,'MonitorPositions');
     
@@ -49,7 +49,7 @@ function h = initExpGUI(expe,options)
     
     %Actions:
     h.init_buttons = @(s) init_buttons(s);
-    h.init_continue = @(s,i,trial) init_continue(s,i,trial);
+    h.init_continue = @(s,i,trial) init_continue(s,i);
     h.init_playbutton = @(s,fs) init_playbutton(s,fs);   
     h.set_progress = @(t, i, n) set_progress(t, i, n);
     
@@ -63,13 +63,10 @@ function h = initExpGUI(expe,options)
     
     % Make the GUI visible.
     h.f.Visible = 'on';
-    %ipush = 1;
-    %repeatedWords = {''};
     
     %% Helper functions:
     function init_buttons(sentence)
         
-        %minButtonWidth = 20;
         buttonName = strsplit(sentence, ' '); % words
         
         %Check if white spaces remain because this might cause an error
@@ -83,13 +80,8 @@ function h = initExpGUI(expe,options)
         end
         
         nButtons = length(buttonName);
-%         buttonheight= 50;
-%         dispwidth = minButtonWidth * length(sentence) + 100; % 100 is an arbitrary boundary
-%         dispheight = 400;
-%         buttonYpos = round(dispheight) - round(buttonheight);
-        
+
         xPos = (0.05:0.1:1.5)';
-        %yPos = (0.91:-0.1:0);
         yPos = 0.5;
         [X,Y] = meshgrid(xPos,yPos);
 
@@ -107,21 +99,13 @@ function h = initExpGUI(expe,options)
                 disp('----------');
                 
             end
-        end %for
-
-%         for iButton = 1 : nButtons
-%             buttonWidth = minButtonWidth * length(buttonName{iButton}); % width button proportional to number of characters in string
-% 
-%             h.Box.(buttonName{iButton}) = uicontrol('Style','togglebutton','Units','pixels','String', buttonName{iButton},...
-%                 'Position',[(dispwidth * iButton/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos, buttonWidth, buttonheight],...
-%                 'Value', 0, 'Visible', 'On');
-%         end 
+        end 
         
     end
 
-    function init_continue(sentence,i_condition,trial)
+    function init_continue(sentence,i_condition)
         
-        set(h.Box.continue,'Callback',@(hObject,callbackdata) continueCallback(expe,options,sentence,i_condition,trial));
+        set(h.Box.continue,'Callback',@(hObject,callbackdata) continueCallback(expe,options,sentence,i_condition));
         
     end
 
@@ -147,18 +131,11 @@ function h = initExpGUI(expe,options)
 
     %% Callbacks:
 
-    function continueCallback(expe,options,sentence,i_condition,trial)
+    function continueCallback(expe,options,sentence,i_condition)
         
-        stop(h.recObj);
-        disp('End of Recording.');
-        stim_dur = toc();
-        y = getaudiodata(h.recObj);
-        fs = h.recObj.SampleRate;
         
-        %check if 'results' field exists:
         filename = options.res_filename;
-        vars = whos('-file',filename);
-        results_exist = ismember('results', {vars.name});
+        load(filename);
         
         words = strsplit(sentence, ' ');
         
@@ -186,79 +163,27 @@ function h = initExpGUI(expe,options)
             
         end
         
-            
-        if results_exist
-            load(filename,'results') 
-            results(i_condition).words = repeatedWords;
-            results(i_condition).sentence = sentence;
-            results(i_condition).nwords_correct = length(repeatedWords);
-            
-            results(i_condition).label = options.test.voices(trial.dir_voice).label;
-            results(i_condition).f0 = options.test.voices(trial.dir_voice).f0;
-            results(i_condition).ser = options.test.voices(trial.dir_voice).ser;
-            
-            %Log timestamps to be able to calculate REACTION TIMES!!
-            results(i_condition).trial_start_timestamp = trial.timestamp;
-            results(i_condition).stim_start_timestamp = h.timestamp;
-            results(i_condition).stim_dur = stim_dur;
-            
-        else
-            results.words = repeatedWords;
-            results.sentence = sentence;
-            results.nwords_correct = length(repeatedWords);
-            
-            results.label = options.test.voices(trial.dir_voice).label;
-            results.f0 = options.test.voices(trial.dir_voice).f0;
-            results.ser = options.test.voices(trial.dir_voice).ser;
-            
-            results.trial_start_timestamp = trial.timestamp;
-            results.stim_start_timestamp = h.timestamp;
-            results.stim_dur = stim_dur;
-        end
-        expe.test.conditions(i_condition).done = 1;
+         
+        results(i_condition).words_offline = repeatedWords;
+        results(i_condition).nwords_correct_offline = length(repeatedWords);
+        
         save(filename,'expe','options','results');
         
-        %save the audio recording:
-        f0 = options.test.voices(trial.dir_voice).f0;
-        ser = options.test.voices(trial.dir_voice).ser;
-        fname = sprintf('Condition%s_Sentence%s_Voc%s_GPR%d_SER%.2f', num2str(i_condition) ,num2str(trial.test_sentence),...
-            num2str(trial.vocoder) , floor(f0), ser);
-        fname = fullfile(options.res_foldername, [fname, '.wav']);
-        
-        if ~exist(fname,'file')
-            audiowrite(fname,y,fs);
-        end
-            
-   
         set(h.continue,'Value',1);
         uiresume(h.f);
     end
 
     function playSnd(stimulus, fs)
         
-        h.timestamp = datestr(now);
-        tic();
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%
-        %RECORD TRIAL (STIMULUS + RESPONSE):
-        h.recObj = audiorecorder;
-        disp('Recording...')
-        record(h.recObj);
-        %play(recObj);
-        %%%%%%%%%%%%%%%%%%%%%%%
-        
         set(h.Box.continue,'Enable','off');
         stimulus = audioplayer(stimulus,fs,16);
         playblocking(stimulus);
         pause(0.5);
         set(h.Box.continue,'Enable','on');
-        set(h.Box.play,'Enable','off');
         uiresume(h.f);
         
         
     end
 
-    
 
 end
-

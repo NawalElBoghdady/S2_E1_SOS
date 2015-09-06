@@ -60,7 +60,7 @@ function expe_main(options, session)
 
         while mean([expe.test.conditions(this_session).done])~=1  % Keep going while there are some conditions in this session left to do
 
-            timestamp = now();
+            timestamp = datestr(now);
             % Find first condition not done
             i_condition = find([expe.test.conditions.done]==0 & [expe.test.conditions.session] == session, 1);
             fprintf('\n============================ Testing condition %d / %d ==========\n', i_condition, length(expe.test.conditions))
@@ -246,7 +246,7 @@ function playTrain(h, options,condition,phase,feedback,sentences)
         h.disable_start();
 
         %Generate Masker and target:
-        [target,masker,sentence,fs] = expe_make_stim(options,condition,phase);
+        [target,masker,sentence,fs] = expe_make_stim(options,condition,phase,i);
         xOut = (target+masker)*10^(-options.attenuation_dB/20);
         
         %Vocode as necessary:

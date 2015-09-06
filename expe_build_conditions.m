@@ -215,13 +215,37 @@ end
 
 %% Build Experimental Conditions:
 
-%load VU_zinnen_vrouw.mat;
-
 rng('shuffle');
-
 rndSequence = randperm(size(options.test.voice_pairs, 1));
 
- 
+
+%------Choose training sentences:
+%1. Randomize the training sentences:
+trainSeq = options.trainSentences(1):options.trainSentences(2);
+rand_ind_trainSeq = randperm(length(trainSeq));
+trainSeq = trainSeq(rand_ind_trainSeq);
+
+%2. Choose 'options.test.voice_pairs' groups of 'training.nsentences'. Each
+%voice-pair group should have a different set of nsentences so that
+%training sentences 
+ngroups = length(options.test.voice_pairs);
+nsents = options.training.nsentences;
+
+rand_train1_seq = {''};
+
+for i = 1:nsents:ngroups*nsents
+    
+        if i == 1
+            rand_train1_seq{end} = [trainSeq(i) trainSeq(i+1) trainSeq(i+2)];
+        else
+            rand_train1_seq{end+1} = [trainSeq(i) trainSeq(i+1) trainSeq(i+2)];
+        end
+        
+end
+
+rand_train2_seq = flip(rand_train1_seq);
+
+
 
 %================================================== Build test block
 
@@ -231,7 +255,7 @@ s = 1; %counter for indexing sent_seq
 
 for session = 1:2
     
-    
+    %Choose test sentences:
     bank = ['testS' num2str(session)];   
     sent_seq = options.(bank)(1):options.(bank)(2);
    
@@ -254,6 +278,9 @@ for session = 1:2
                 condition.ref_voice = options.test.voice_pairs(i_vp, 1);
                 
                 condition.dir_voice = options.test.voice_pairs(i_vp, 2); 
+                
+                condition.training1.sentences = rand_train1_seq{i_vp};
+                condition.training2.sentences = rand_train2_seq{i_vp};
                 
                 condition.done = 0;
 
@@ -295,15 +322,6 @@ else
     warning('The test file was not saved: no filename provided.');
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%
-%RECORD AUDIO RESPONSES:
-%recObj = audiorecorder
-%disp('Start speaking.')
-%recordblocking(recObj, 5);
-%disp('End of Recording.');
-%play(recObj);
-%y = getaudiodata(recObj);
-%fs = recObj.SampleRate;
-%%%%%%%%%%%%%%%%%%%%%%%
+
 
 

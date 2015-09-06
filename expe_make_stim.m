@@ -1,16 +1,16 @@
-function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase)
+function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase,varargin)
 
     %phase needs to switch between training 1 (no masker), training 2 (masker)
     %and test. This parameter is set in expe_main.
     
     if strcmp(phase, 'training1')
         
-        [target,sentence,fs] = createTarget(options,trial,phase);
+        [target,sentence,fs] = createTarget(options,trial,phase,varargin{1});
         masker = zeros(length(target),1);
         
     elseif strcmp(phase, 'training2')
         
-        [target,sentence,fs] = createTarget(options,trial,phase);
+        [target,sentence,fs] = createTarget(options,trial,phase,varargin{1});
         [masker,target,fs] = createMasker(options,target,fs);
         
         
@@ -32,27 +32,20 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase)
 
 end
 
-function [target,sentence,fs] = createTarget(options,trial,phase)
+function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
 
     %Straight processing happens here!
     
     if strcmp(phase,'test')
-        if trial.session == 1
-            bank_start = options.testS1(1);
-            bank_end = options.testS1(2);
-        elseif trial.session == 2
-            bank_start = options.testS2(1);
-            bank_end = options.testS2(2);
-        end
+        
+        sentence = trial.test_sentence;
+        
     elseif strcmp(phase,'training1') || strcmp(phase,'training2')
-        bank_start = options.trainSentences(1);
-        bank_end = options.trainSentences(2);
+
+        sentence = trial.(phase).sentences(varargin{1});
     end
     
-    sentence_bank = bank_start:bank_end;
-    sentence = sentence_bank(randperm(length(sentence_bank),1)); %randomly choose a target sentence from the test bank
-    %NOTE: This does not guarantee that you don't choose the same sentence
-    %more than once in a session!!!! Fix later!!
+    
     
     f0 = options.test.voices(trial.dir_voice).f0;
     ser = options.test.voices(trial.dir_voice).ser;
