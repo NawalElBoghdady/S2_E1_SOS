@@ -137,7 +137,7 @@ function expe_main(options, session)
             g.set_progress(strrep(phase, '_', ' '), i_condition, total_trials);
             
             %Create Stimulus:
-            [target,masker,sentence,fs] = expe_make_stim(options,condition,phase);
+            [target,masker,sentence,fs] = expe_make_stim(options,condition,phase,i_condition);
             xOut = (target+masker)*10^(-options.attenuation_dB/20);
             
             %Vocode as necessary:

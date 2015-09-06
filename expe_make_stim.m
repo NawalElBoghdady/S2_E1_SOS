@@ -11,13 +11,13 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase,vararg
     elseif strcmp(phase, 'training2')
         
         [target,sentence,fs] = createTarget(options,trial,phase,varargin{1});
-        [masker,target,fs] = createMasker(options,target,fs);
+        [masker,target,fs] = createMasker(options,trial,target,fs,varargin{1});
         
         
     elseif strcmp(phase, 'test')
         
         [target,sentence,fs] = createTarget(options,trial,phase);
-        [masker,target,fs] = createMasker(options,target,fs);
+        [masker,target,fs] = createMasker(options,trial,target,fs,varargin{1});
         
     end
     
@@ -45,14 +45,19 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
         sentence = trial.(phase).sentences(varargin{1});
     end
     
+    wavIn = fullfile(options.sound_path, [num2str(sentence), '.wav']);
     
+    [target,fs] = audioread(wavIn);
     
-    f0 = options.test.voices(trial.dir_voice).f0;
-    ser = options.test.voices(trial.dir_voice).ser;
+    silence_gap = 0.5*fs;
+    target = [zeros(silence_gap,1);target]; %zero pad with silence gap of 0.5 sec
     
-    [y,fs] = straight_process(sentence, f0, ser, options, trial.vocoder);
+%     f0 = options.test.voices(trial.dir_voice).f0;
+%     ser = options.test.voices(trial.dir_voice).ser;
+%     
+%     [y,fs] = straight_process(sentence, f0, ser, options, trial.vocoder);
     
-    target = y;
+%     target = y;
                                                             
     
     
@@ -60,57 +65,65 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
 end
 
 
-function [masker,target,fs] = createMasker(options,target,fs)
+function [masker,target,fs] = createMasker(options,trial,target,fs,i_condition)
     
     %Take random pieces of masker sentences and stitch them together.
     %Target should be zero padded to start 0.5sec after the masker.
     %Target and masker should be the same length to be added later.
 
-    stim_dir = options.sound_path;
-    bank_start = options.masker(1);
-    bank_end = options.masker(2);
+%    stim_dir = options.tmp_path;
+%     bank_start = options.masker(1);
+%     bank_end = options.masker(2);
+%     
+%     silence_gap = 0.5*fs;
+%     target = [zeros(silence_gap,1);target]; %zero pad with silence gap of 0.5 sec
+%     
+%     %Extract chunks from 15 random sentences. 15 was chosen to have a
+%     %masker that is always longer than the target. That way, it is easier
+%     %to chop up the masker at the end to make it as long as the target:
+%     nsentences = 15;
+%     chunk_size = 0.4; %take a 0.4th of each sentence
+%     
+%     sentence_bank = bank_start:bank_end;
+%     sentence_bank = sentence_bank(randperm(length(sentence_bank)));
+%     
+%     masker = [];
+%     
+%     %instead of concatenating the whole masker, concatenate new chunks.
+%     
+%     for i = 1:nsentences
+%         
+%         [y,fs] = audioread([stim_dir '/' num2str(sentence_bank(i)) '.wav']);
+%         chunk_length = floor(chunk_size*length(y)); %determine chunk size
+%         %start the chunk at a random location in the file:
+%         
+%         chunk_start = randperm(length(y),1);
+%         
+%         if chunk_start+chunk_length > length(y)
+%             chunk_ind = [chunk_start-chunk_length chunk_start];
+%         else
+%             chunk_ind = [chunk_start chunk_start+chunk_length];
+%         end
+%         
+%         chunk = y(chunk_ind(1):chunk_ind(2));
+%         
+%         %Apply cosine ramp:
+%         chunk = cosgate(chunk, fs, 2e-3); %2ms cosine ramp.
+%         
+%         masker = [masker; chunk];
+%             
+%         
+%     end
+
+    sentence = ['M_' num2str(i_condition)];
+
+    f0 = options.test.voices(trial.dir_voice).f0;
+    ser = options.test.voices(trial.dir_voice).ser;
     
-    silence_gap = 0.5*fs;
-    target = [zeros(silence_gap,1);target]; %zero pad with silence gap of 0.5 sec
+    [masker,fs] = straight_process(sentence, f0, ser, options, trial.vocoder);
     
-    %Extract chunks from 15 random sentences. 15 was chosen to have a
-    %masker that is always longer than the target. That way, it is easier
-    %to chop up the masker at the end to make it as long as the target:
-    nsentences = 15;
-    chunk_size = 0.4; %take a 0.4th of each sentence
     
-    sentence_bank = bank_start:bank_end;
-    sentence_bank = sentence_bank(randperm(length(sentence_bank)));
-    
-    masker = [];
-    
-    %instead of concatenating the whole masker, concatenate new chunks.
-    
-    for i = 1:nsentences
-        
-        [y,fs] = audioread([stim_dir '/' num2str(sentence_bank(i)) '.wav']);
-        chunk_length = floor(chunk_size*length(y)); %determine chunk size
-        %start the chunk at a random location in the file:
-        
-        chunk_start = randperm(length(y),1);
-        
-        if chunk_start+chunk_length > length(y)
-            chunk_ind = [chunk_start-chunk_length chunk_start];
-        else
-            chunk_ind = [chunk_start chunk_start+chunk_length];
-        end
-        
-        chunk = y(chunk_ind(1):chunk_ind(2));
-        
-        %Apply cosine ramp:
-        chunk = cosgate(chunk, fs, 2e-3); %2ms cosine ramp.
-        
-        masker = [masker; chunk];
-            
-        
-    end
-    
-    %Set masker length = target length:
+%    Set masker length = target length:
     if length(masker) >= length(target)
       
         masker = masker(1:length(target)); %chop it off if it is too long
@@ -149,7 +162,7 @@ end
 
 function [y, fs] = straight_process(sentence, t_f0, ser, options, vocoder)
 
-    wavIn = fullfile(options.sound_path, [num2str(sentence), '.wav']);
+    wavIn = fullfile(options.tmp_path, [num2str(sentence), '.wav']);
     wavOut = make_fname(vocoder, wavIn, t_f0, ser, options.tmp_path);
 
     if ~exist(wavOut, 'file')
@@ -198,7 +211,7 @@ function fname = make_fname(vocoder, wav, f0, ser, destPath)
     [~, name, ext] = fileparts(wav);
     
     %fname = sprintf('%s_%s_%s_GPR%d_SER%.2f', ['S' num2str(session)],['Voc-' vocoder] ,['Sentence-' name], floor(f0), ser);
-    fname = sprintf('Sentence%s_Voc%s_GPR%d_SER%.2f', name, num2str(vocoder) , floor(f0), ser);
+    fname = sprintf('%s_Voc%s_GPR%d_SER%.2f', name, num2str(vocoder) , floor(f0), ser);
    
     fname = fullfile(destPath, [fname, ext]);
 end

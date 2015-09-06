@@ -145,7 +145,7 @@ for i = 1:13:length(sentences)
 end
 
 %2. Define the sentence bank for each stimulus type:
-options.trainSentences = [options.list{1}(1) options.list{2}(2)];              %training sentences (target)
+options.trainSentences = [options.list{21}(1) options.list{26}(2)];              %training sentences (target)
 options.testS1 = [options.list{3}(1) options.list{11}(2)];                     %test sentences Session 1 (target)
 options.testS2 = [options.list{12}(1) options.list{20}(2)];                    %test sentences Session 2 (target)
 options.masker = [options.list{27}(1) options.list{31}(2)];                    %masker sentences training+test all sessions
@@ -233,7 +233,7 @@ nsents = options.training.nsentences;
 
 rand_train1_seq = {''};
 
-for i = 1:nsents:ngroups*nsents
+for i = 1:nsents:ngroups*nsents*2*vi %voice_dirs*n_sentences*n_sessions*n_vocoders 
     
         if i == 1
             rand_train1_seq{end} = [trainSeq(i) trainSeq(i+1) trainSeq(i+2)];
