@@ -13,10 +13,13 @@ function h = initExpGUI(expe,options)
     if ~is_test_machine
         left = scrsz(1); bottom = scrsz(2); width = scrsz(3); height = scrsz(4);
     else
-        left = -1024; bottom=0; width=1024; height=768;
+          left = -1024; bottom=0; width=1024; height=768;
+        %left = scrsz(1); bottom = scrsz(2); width = scrsz(3); height = scrsz(4);
+        
     end
     
     scrsz = [left, bottom, width, height];
+    %scrsz = [-1024 0 1024 10];
     n_rows = 1; 
     n_cols = 3; 
     grid_sz = [n_cols, n_rows]*300;
@@ -27,7 +30,10 @@ function h = initExpGUI(expe,options)
     h.progress_bar_color = [.5 .8 .5];
     
 
-    h.f = figure('Visible', 'off','Units','normalized', 'Position', scrsz, ...
+%     h.f = figure('Visible', 'off','Units','normalized', 'Position', scrsz, ...
+%         'Toolbar', 'none', 'Menubar', 'none', 'NumberTitle', 'off');
+
+    h.f = figure('Visible', 'off', 'Position', scrsz, ...
         'Toolbar', 'none', 'Menubar', 'none', 'NumberTitle', 'off');
     
     % Progress bar
@@ -62,14 +68,13 @@ function h = initExpGUI(expe,options)
     
     
     % Make the GUI visible.
+    movegui(h.f,'center');
     h.f.Visible = 'on';
-    %ipush = 1;
-    %repeatedWords = {''};
+    
     
     %% Helper functions:
     function init_buttons(sentence)
         
-        %minButtonWidth = 20;
         buttonName = strsplit(sentence, ' '); % words
         
         %Check if white spaces remain because this might cause an error
@@ -83,14 +88,10 @@ function h = initExpGUI(expe,options)
         end
         
         nButtons = length(buttonName);
-%         buttonheight= 50;
-%         dispwidth = minButtonWidth * length(sentence) + 100; % 100 is an arbitrary boundary
-%         dispheight = 400;
-%         buttonYpos = round(dispheight) - round(buttonheight);
+
         
         xPos = (0.05:0.1:1.5)';
-        %yPos = (0.91:-0.1:0);
-        yPos = 0.5;
+        yPos = 0.3;
         [X,Y] = meshgrid(xPos,yPos);
 
         buttonwidth = 0.08;
@@ -107,15 +108,7 @@ function h = initExpGUI(expe,options)
                 disp('----------');
                 
             end
-        end %for
-
-%         for iButton = 1 : nButtons
-%             buttonWidth = minButtonWidth * length(buttonName{iButton}); % width button proportional to number of characters in string
-% 
-%             h.Box.(buttonName{iButton}) = uicontrol('Style','togglebutton','Units','pixels','String', buttonName{iButton},...
-%                 'Position',[(dispwidth * iButton/(nButtons + 1) - round(buttonWidth / 2)), buttonYpos, buttonWidth, buttonheight],...
-%                 'Value', 0, 'Visible', 'On');
-%         end 
+        end 
         
     end
 
@@ -151,7 +144,7 @@ function h = initExpGUI(expe,options)
         
         stop(h.recObj);
         disp('End of Recording.');
-        stim_dur = toc();
+        trial_dur = toc();
         y = getaudiodata(h.recObj);
         fs = h.recObj.SampleRate;
         
@@ -194,13 +187,16 @@ function h = initExpGUI(expe,options)
             results(i_condition).nwords_correct = length(repeatedWords);
             
             results(i_condition).label = options.test.voices(trial.dir_voice).label;
+            results(i_condition).dir_voice = trial.dir_voice;
+            results(i_condition).vocoder = trial.vocoder;
+            
             results(i_condition).f0 = options.test.voices(trial.dir_voice).f0;
             results(i_condition).ser = options.test.voices(trial.dir_voice).ser;
             
             %Log timestamps to be able to calculate REACTION TIMES!!
             results(i_condition).trial_start_timestamp = trial.timestamp;
             results(i_condition).stim_start_timestamp = h.timestamp;
-            results(i_condition).stim_dur = stim_dur;
+            results(i_condition).trial_dur = trial_dur;
             
         else
             results.words = repeatedWords;
@@ -208,12 +204,15 @@ function h = initExpGUI(expe,options)
             results.nwords_correct = length(repeatedWords);
             
             results.label = options.test.voices(trial.dir_voice).label;
+            results.dir_voice = trial.dir_voice;
+            results.vocoder = trial.vocoder;
+            
             results.f0 = options.test.voices(trial.dir_voice).f0;
             results.ser = options.test.voices(trial.dir_voice).ser;
             
             results.trial_start_timestamp = trial.timestamp;
             results.stim_start_timestamp = h.timestamp;
-            results.stim_dur = stim_dur;
+            results.trial_dur = trial_dur;
         end
         expe.test.conditions(i_condition).done = 1;
         save(filename,'expe','options','results');
@@ -239,13 +238,13 @@ function h = initExpGUI(expe,options)
         h.timestamp = datestr(now);
         tic();
         
-        %%%%%%%%%%%%%%%%%%%%%%%%
-        %RECORD TRIAL (STIMULUS + RESPONSE):
-        h.recObj = audiorecorder;
+        %%%%%%%%%%%%%%%%%%%%%%%
+%        RECORD TRIAL (STIMULUS + RESPONSE):
+        h.recObj = audiorecorder(44100,8,1,0);
         disp('Recording...')
         record(h.recObj);
-        %play(recObj);
-        %%%%%%%%%%%%%%%%%%%%%%%
+       % play(h.recObj);
+        %%%%%%%%%%%%%%%%%%%%%%
         
         set(h.Box.continue,'Enable','off');
         stimulus = audioplayer(stimulus,fs,16);

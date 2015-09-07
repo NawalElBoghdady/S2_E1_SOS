@@ -6,8 +6,8 @@ if is_test_machine() %If it's computer in Tinnitus Room
     disp('-------------------------');
     disp('--- In Tinnitus Room ---');
     disp('-------------------------');
-    options.sound_path = '/Users/denizbaskent/Sounds/VU_zinnen/Vrouw/equalized';
-    options.tmp_path   = '/Users/denizbaskent/Sounds/VU_zinnen/Vrouw/processed';
+    options.sound_path = '/Users/dbaskent/Sounds/VU_zinnen/Vrouw/equalized';
+    options.tmp_path   = '/Users/dbaskent/Sounds/VU_zinnen/Vrouw/processed';
 
 else %If it's experimenter's OWN computer:
     disp('-------------------------');
@@ -27,13 +27,13 @@ end
 current_dir = fileparts(mfilename('fullpath'));
 added_path  = {};
 
-added_path{end+1} = '~/Library/Matlab/auditory_research_tools/vocoder_2015';
+added_path{end+1} = '~/Library/Matlab/auditory-research-tools/vocoder_2015';
 addpath(added_path{end});
 
-added_path{end+1} = '~/Library/Matlab/auditory_research_tools/STRAIGHTV40_006b';
+added_path{end+1} = '~/Library/Matlab/auditory-research-tools/STRAIGHTV40_006b';
 addpath(added_path{end});
 
-added_path{end+1} = '~/Library/Matlab/auditory_research_tools/common_tools';
+added_path{end+1} = '~/Library/Matlab/auditory-research-tools/common_tools';
 addpath(added_path{end});
 
 

@@ -49,6 +49,8 @@ function expe_main(options, session)
     end
     
     prev_dir_voice = [];
+    
+    prev_TMR = [];
     vocoded_section = 0;
     
     
@@ -66,6 +68,9 @@ function expe_main(options, session)
             fprintf('\n============================ Testing condition %d / %d ==========\n', i_condition, length(expe.test.conditions))
             condition = expe.test.conditions(i_condition);
             
+            %Print the condition to the screen:
+            condition
+            
             %Always get timestamp for each trial.
             condition.timestamp = timestamp;
 
@@ -78,7 +83,8 @@ function expe_main(options, session)
 
 
     %% Training phase:
-            if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
+            %if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
+            if isempty(prev_TMR) || prev_TMR ~= condition.TMR
                 
                 %Check for the beginning of the vocoded section. Include a
                 %break here:
@@ -192,7 +198,8 @@ function expe_main(options, session)
             
             %keep track of the dir voice to know whether you should train
             %subjs if the dir voice changes:
-            prev_dir_voice = condition.dir_voice;
+%             prev_dir_voice = condition.dir_voice;
+            prev_TMR = condition.TMR;
             
             %mark that this trial is done.
             expe.test.conditions(i_condition).done = 1;

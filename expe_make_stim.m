@@ -144,7 +144,7 @@ function [masker,target,fs] = createMasker(options,trial,target,fs,i_condition)
     %Set masker RMS:
     rmsM = rms(masker);
     rmsT = rms(target);
-    masker = masker./rmsM.*(rmsT/10^(options.TMR/20));
+    masker = masker./rmsM.*(rmsT/10^(trial.TMR/20));
     
 %     switch options.ear
 %         case 'right'
