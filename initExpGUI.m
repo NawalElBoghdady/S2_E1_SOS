@@ -189,6 +189,7 @@ function h = initExpGUI(expe,options)
             results(i_condition).label = options.test.voices(trial.dir_voice).label;
             results(i_condition).dir_voice = trial.dir_voice;
             results(i_condition).vocoder = trial.vocoder;
+            results(i_condition).TMR = trial.TMR;
             
             results(i_condition).f0 = options.test.voices(trial.dir_voice).f0;
             results(i_condition).ser = options.test.voices(trial.dir_voice).ser;
@@ -206,6 +207,7 @@ function h = initExpGUI(expe,options)
             results.label = options.test.voices(trial.dir_voice).label;
             results.dir_voice = trial.dir_voice;
             results.vocoder = trial.vocoder;
+            results.TMR = trial.TMR;
             
             results.f0 = options.test.voices(trial.dir_voice).f0;
             results.ser = options.test.voices(trial.dir_voice).ser;
