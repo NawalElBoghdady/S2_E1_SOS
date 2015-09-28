@@ -59,6 +59,8 @@ function expe_main(options, session)
     sentences = sentences.(name);
     
     %for vocoder = unique([expe.test.conditions.vocoder])
+    
+    prev_voc = 0;
 
         while mean([expe.test.conditions(this_session).done])~=1  % Keep going while there are some conditions in this session left to do
 
@@ -84,7 +86,7 @@ function expe_main(options, session)
 
     %% Training phase:
             %if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
-            if isempty(prev_TMR) || prev_TMR ~= condition.TMR
+            if isempty(prev_TMR) || prev_TMR ~= condition.TMR || prev_voc ~= condition.vocoder
                 
                 %Check for the beginning of the vocoded section. Include a
                 %break here:
@@ -206,6 +208,7 @@ function expe_main(options, session)
             
             close(g.f);
             
+            prev_voc = condition.vocoder;
             
         end
         

@@ -17,7 +17,7 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase,vararg
     elseif strcmp(phase, 'test')
         
         [target,sentence,fs] = createTarget(options,trial,phase);
-        [masker,target,fs] = createMasker(options,trial,target,fs,varargin{1});
+        [masker,target,fs] = createMasker(options,trial,target,fs);
         
     end
     
@@ -39,14 +39,14 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
     
     [target,fs] = audioread(wavIn);
     
-    silence_gap = 0.5*fs;
+    silence_gap = floor(0.5*fs);
     target = [zeros(silence_gap,1);target]; %zero pad with silence gap of 0.5 sec
     
 
 end
 
 
-function [masker,target,fs] = createMasker(options,trial,target,fs,i_condition)
+function [masker,target,fs] = createMasker(options,trial,target,fs,varargin)
  
    %Take random pieces of masker sentences and stitch them together.
     %Target and masker should be the same length to be added later.  
@@ -126,7 +126,8 @@ function [masker,target,fs] = createMasker(options,trial,target,fs,i_condition)
     
     %Set masker RMS:
     rmsM = rms(masker);
-    rmsT = rms(target);
+    silence = floor(0.5*fs);
+    rmsT = rms(target(silence:end));
     masker = masker./rmsM.*(rmsT/10^(trial.TMR/20));
     
 

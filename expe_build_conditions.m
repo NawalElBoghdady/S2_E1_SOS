@@ -81,51 +81,42 @@ options.ear = 'both'; % right, left or both
 options.test.nsentences = 4; % Number of test sentences per condition
 
 %% ----------- Stimuli options
-%options.test.f0s  = [242, 121, round(242*2^(5/12))]; 
-%options.test.sers = [1, 2^(-3.8/12), 2^(5/12)];
+options.test.f0s  = [4, 9, 12]; 
+options.test.vtls = [4, 9, 12];
 
 options.test.voices(1).label = 'female'; % 130.26 = average pitch of original female voice
 options.test.voices(1).f0 = 1;
 options.test.voices(1).ser = 1;
 
-% options.test.voices(2).label = 'child-vtl-0';
-% options.test.voices(2).f0 = options.test.voices(1).f0;
-% options.test.voices(2).ser = 2^(0/12);
-% 
-% options.test.voices(3).label = 'child-vtl-0p75';
-% options.test.voices(3).f0 = options.test.voices(1).f0;
-% options.test.voices(3).ser = 2^(0.75/12);
-% 
-% options.test.voices(4).label = 'child-vtl-1p5';
-% options.test.voices(4).f0 = options.test.voices(1).f0;
-% options.test.voices(4).ser = 2^(1.5/12);
-% 
-% options.test.voices(5).label = 'child-vtl-4';
-% options.test.voices(5).f0 = options.test.voices(1).f0;
-% options.test.voices(5).ser = 2^(4/12);
-% 
-% options.test.voices(6).label = 'child-vtl-9';
-% options.test.voices(6).f0 = options.test.voices(1).f0;
-% options.test.voices(6).ser = 2^(9/12);
-% 
-% options.test.voices(7).label = 'child-vtl-15';
-% options.test.voices(7).f0 = options.test.voices(1).f0;
-% options.test.voices(7).ser = 2^(15/12);
+i_voices = 2;
 
-options.training.voices = options.test.voices;
-options.training.nsentences = 3; %number of training sentences per condition.
+for i_f0 = 1:length(options.test.f0s)
+    
+    for i_vtl = 1:length(options.test.vtls)
+        
+        options.test.voices(i_voices).label = ['f0-' num2str(options.test.f0s(i_f0)) '-vtl-' num2str(options.test.vtls(i_vtl))];
+        options.test.voices(i_voices).f0 = 2^(options.test.f0s(i_f0)/12);
+        options.test.voices(i_voices).ser = 2^(options.test.vtls(i_vtl)/12);
+        
+        i_voices = i_voices + 1;
+    end
+    
+end
 
 %--- Voice pairs
 % [ref_voice, dir_voice]
-options.test.voice_pairs = [...
-      1 1]; % Female -> Female condition.
-%     1 2;  % Female -> Child VTL 0 ST
-%     1 3;  % Female -> Child VTL 0.75 ST
-%     1 4;  % Female -> Child VTL 1.5 ST
-%     1 5;  % Female -> Child VTL 4 ST
-%     1 6;  % Female -> Child VTL 9 ST
-%     1 7]; % Female -> Child VTL 15 ST
-options.training.voice_pairs = options.test.voice_pairs;
+options.test.voice_pairs = [ones(length(options.test.voices),1), (1:length(options.test.voices))'];
+
+%--- Define training voices:
+% F0 = 8 ST, VTL = 8 ST
+options.training.voices(1).label = 'f0-8-vtl-8';
+options.training.voices(1).f0 = 2^(8/12); 
+options.training.voices(1).label = 2^(8/12);
+
+list_size = 13; %nsentences per list
+
+options.training.nsentences = list_size; %number of training sentences per condition.
+options.training.voice_pairs = [ones(length(options.training.voices),1), (1:length(options.training.voices))'];
 
 %% --- Define sentence bank for each stimulus type:
 
@@ -136,8 +127,7 @@ options.list = {''};
 sentences = load(options.sentence_bank,name);
 sentences = sentences.(name);
 
-
-for i = 1:13:length(sentences)
+for i = 1:list_size:length(sentences)
     if i == 1
         options.list{end} = [i i+12];
     else
@@ -146,8 +136,8 @@ for i = 1:13:length(sentences)
 end
 
 %2. Define the sentence bank for each stimulus type:
-options.trainSentences = [options.list{21}(1) options.list{26}(2)];            %training sentences (target)
-options.testS1 = [options.list{3}(1) options.list{11}(2)];                     %test sentences Session 1 (target)
+options.trainSentences = [options.list{22}(1) options.list{24}(2)];            %training sentences (target)
+options.testS1 = [options.list{1}(1) options.list{12}(2)];                     %test sentences Session 1 (target)
 options.testS2 = [options.list{12}(1) options.list{20}(2)];                    %test sentences Session 2 (target)
 options.masker = [options.list{27}(1) options.list{31}(2)];                    %masker sentences training+test all sessions
 
