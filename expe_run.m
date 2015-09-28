@@ -3,8 +3,8 @@ function expe_run(subject, session)
 %
 % Entry point to the SOS experiment
 % Input Args: 
-%           subject => subject number
-%           phase   => 'training' or 'test'
+%           subject => subject number 
+%           session => 1 or 2
 
 %% Specify results path
 
