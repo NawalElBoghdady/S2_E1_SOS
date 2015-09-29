@@ -58,7 +58,11 @@ function expe_main(options, session)
     sentences = load(options.sentence_bank,name);
     sentences = sentences.(name);
     
-    %for vocoder = unique([expe.test.conditions.vocoder])
+    %Assign 4 scheduled breaks:
+    breaktime = floor(length(expe.test.conditions)/5);
+    breaktime_trials = [breaktime:breaktime:length(expe.test.conditions)];
+    breaktime_trials = breaktime_trials(1:4);
+    
     
     prev_voc = 0;
 
@@ -83,31 +87,31 @@ function expe_main(options, session)
             end
 
 
+            %Include a break here:
+            if sum(i_condition == breaktime_trials) > 0
+            %if (condition.vocoder > 0) && (vocoded_section == 0)
+                instr = strrep(options.instructions.breaktime, '\n', sprintf('\n'));
+                h.set_instruction(instr);
+                h.show_instruction();
+                h.set_hstart_text('CONTINUE');
+                h.enable_start();
+                h.show_start();
+                uicontrol(h.hstart);
+                uiwait(h.f);
+
+%                     vocoded_section = 1; %display instructions once vocoded section begins
+%                     instr = strrep(options.instructions.vocoded, '\n', sprintf('\n'));
+%                     h.set_instruction(instr);
+%                     h.set_hstart_text('CONTINUE');
+%                     h.enable_start();
+%                     h.show_start();
+%                     uicontrol(h.hstart);
+%                     uiwait(h.f);
+            end
 
     %% Training phase:
             %if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
             if isempty(prev_TMR) || prev_TMR ~= condition.TMR || prev_voc ~= condition.vocoder
-                
-                %Check for the beginning of the vocoded section. Include a
-                %break here:
-                if (condition.vocoder > 0) && (vocoded_section == 0)
-                    instr = strrep(options.instructions.breaktime, '\n', sprintf('\n'));
-                    h.set_instruction(instr);
-                    h.set_hstart_text('CONTINUE');
-                    h.enable_start();
-                    h.show_start();
-                    uicontrol(h.hstart);
-                    uiwait(h.f);
-                    
-                    vocoded_section = 1; %display instructions once vocoded section begins
-                    instr = strrep(options.instructions.vocoded, '\n', sprintf('\n'));
-                    h.set_instruction(instr);
-                    h.set_hstart_text('CONTINUE');
-                    h.enable_start();
-                    h.show_start();
-                    uicontrol(h.hstart);
-                    uiwait(h.f);
-                end
 
                 
                 %1. Train on target WITHOUT masker:
@@ -182,10 +186,10 @@ function expe_main(options, session)
             uiwait(g.f);
 
             %Instruct to Repeat the target sentence
-            instr = strrep(options.instructions.repeat, '\n', sprintf('\n'));
-            h.hide_instruction();
-            h.set_instruction(instr);
-            h.show_instruction();
+%             instr = strrep(options.instructions.repeat, '\n', sprintf('\n'));
+%             h.hide_instruction();
+%             h.set_instruction(instr);
+%             h.show_instruction();
             
             %wait until experimenter is done entering the responses and
             %saving:
@@ -196,7 +200,8 @@ function expe_main(options, session)
             g.set_contFlag(0);
             %close(h.f);
             
-            
+            %Remove Listen instruction
+            h.hide_instruction();
             
             %keep track of the dir voice to know whether you should train
             %subjs if the dir voice changes:
@@ -234,6 +239,7 @@ function playTrain(h, options,condition,phase,feedback,sentences)
     instr = strrep(options.instructions.( phase ), '\n', sprintf('\n'));
 
     h.set_instruction(instr);
+    h.show_instruction();
     h.set_hstart_text('CONTINUE');
     h.enable_start();
     h.show_start();

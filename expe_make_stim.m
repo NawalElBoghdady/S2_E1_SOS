@@ -39,8 +39,9 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
     
     [target,fs] = audioread(wavIn);
     
-    silence_gap = floor(0.5*fs);
-    target = [zeros(silence_gap,1);target]; %zero pad with silence gap of 0.5 sec
+    silence_gap_start = floor(0.5*fs);
+    silence_gap_end = floor(0.1*fs);
+    target = [zeros(silence_gap_start,1);target]; %zero pad with silence gap of 500 ms at the beginning and 100 ms at the end.
     
 
 end
@@ -124,6 +125,8 @@ function [masker,target,fs] = createMasker(options,trial,target,fs,varargin)
         
     end
     
+    masker = cosgate(masker, fs, 250e-3); %250ms cosine ramp.
+    
     %Set masker RMS:
     rmsM = rms(masker);
     silence = floor(0.5*fs);
@@ -137,7 +140,7 @@ function fname = make_fname(wav, f0, ser, destPath)
 
     [~, name, ext] = fileparts(wav);
     
-    fname = sprintf('M_%s_GPR%d_SER%.2f', name, floor(f0), ser);
+    fname = sprintf('M_%s_GPR%.2f_SER%.2f', name, f0, ser);
    
     fname = fullfile(destPath, [fname, ext]);
 end

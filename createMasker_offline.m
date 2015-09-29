@@ -50,9 +50,12 @@ for i = 1:nconditions
     for file = 1:length(maskerList)
         disp('-----------')
         disp(['File ' num2str(maskerList(file))])
+        disp('-----------')
+        disp([num2str(i) '/' num2str(nconditions)])
+        disp('-----------')
 
-        f0 = options.test.voices(i).f0;
-        ser = options.test.voices(i).ser;
+        f0 = options.test.voices(i).f0
+        ser = options.test.voices(i).ser
 
         [masker,fs] = straight_process(maskerList(file), f0, ser, options);
 
@@ -118,7 +121,7 @@ function fname = make_fname(wav, f0, ser, destPath)
 
     [~, name, ext] = fileparts(wav);
     
-    fname = sprintf('M_%s_GPR%d_SER%.2f', name, floor(f0), ser);
+    fname = sprintf('M_%s_GPR%.2f_SER%.2f', name, f0, ser);
    
     fname = fullfile(destPath, [fname, ext]);
 end

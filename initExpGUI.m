@@ -222,8 +222,9 @@ function h = initExpGUI(expe,options)
         %save the audio recording:
         f0 = options.test.voices(trial.dir_voice).f0;
         ser = options.test.voices(trial.dir_voice).ser;
-        fname = sprintf('Condition%s_Sentence%s_Voc%s_GPR%d_SER%.2f', num2str(i_condition) ,num2str(trial.test_sentence),...
-            num2str(trial.vocoder) , floor(f0), ser);
+        TMR = trial.TMR;
+        fname = sprintf('Condition%s_Sentence%s_Voc%s_GPR%.2f_SER%.2f_TMR%d', num2str(i_condition) ,num2str(trial.test_sentence),...
+            num2str(trial.vocoder) , f0, ser, TMR);
         fname = fullfile(options.res_foldername, [fname, '.wav']);
         
         if ~exist(fname,'file')
