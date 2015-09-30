@@ -11,13 +11,13 @@ function [target,masker,sentence,fs] = expe_make_stim(options,trial,phase,vararg
     elseif strcmp(phase, 'training2')
         
         [target,sentence,fs] = createTarget(options,trial,phase,varargin{1});
-        [masker,target,fs] = createMasker(options,trial,target,fs,varargin{1});
+        [masker,target,fs] = createMasker(options,trial,'training',target,fs,varargin{1});
         
         
     elseif strcmp(phase, 'test')
         
         [target,sentence,fs] = createTarget(options,trial,phase);
-        [masker,target,fs] = createMasker(options,trial,target,fs);
+        [masker,target,fs] = createMasker(options,trial,phase,target,fs);
         
     end
     
@@ -32,7 +32,7 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
         
     elseif strcmp(phase,'training1') || strcmp(phase,'training2')
 
-        sentence = trial.(phase).sentences(varargin{1})
+        sentence = trial.(phase).sentences(varargin{1});
     end
     
     wavIn = fullfile(options.sound_path, [num2str(sentence), '.wav']);
@@ -47,7 +47,7 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
 end
 
 
-function [masker,target,fs] = createMasker(options,trial,target,fs,varargin)
+function [masker,target,fs] = createMasker(options,trial,phase,target,fs,varargin)
  
    %Take random pieces of masker sentences and stitch them together.
     %Target and masker should be the same length to be added later.  
@@ -69,8 +69,8 @@ function [masker,target,fs] = createMasker(options,trial,target,fs,varargin)
     i = 1;
     
     while length(masker) < length(target)
-        f0 = options.test.voices(trial.dir_voice).f0;
-        ser = options.test.voices(trial.dir_voice).ser;
+        f0 = options.(phase).voices(trial.dir_voice).f0;
+        ser = options.(phase).voices(trial.dir_voice).ser;
         filename = make_fname([num2str(sentence_bank(i)) '.wav'], f0, ser, stim_dir);
         [y,fs] = audioread(filename);
         

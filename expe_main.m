@@ -114,17 +114,17 @@ function expe_main(options, session)
 %             if isempty(prev_TMR) || prev_TMR ~= condition.TMR || prev_voc ~= condition.vocoder
             if i_condition == 1
 
-                train_condition = condition;
+                training = expe.training;
                 
                 %1. Train on target WITHOUT masker:
                 tic
                 phase = 'training1';
 
-                playTrain(h, options,train_condition,phase,1,sentences);
+                playTrain(h, options,training,phase,1,sentences);
                               
                 %2. Train on target WITH masker. Give feedback.
                 phase = 'training2';
-                playTrain(h, options,train_condition,phase,1,sentences);
+                playTrain(h, options,training,phase,1,sentences);
                 
                 toc
                 
@@ -237,11 +237,7 @@ function expe_main(options, session)
 end
 
 function playTrain(h, options,condition,phase,feedback,sentences)
-    
-
-    condition.TMR = 12;
-    condition.dir_voice = 1;
-    
+   
     instr = strrep(options.instructions.( phase ), '\n', sprintf('\n'));
 
     h.set_instruction(instr);
@@ -250,7 +246,6 @@ function playTrain(h, options,condition,phase,feedback,sentences)
     h.enable_start();
     h.show_start();
 
-    %movegui(h.f,'center')
     h.make_visible(); 
 
     uicontrol(h.hstart);
@@ -272,11 +267,11 @@ function playTrain(h, options,condition,phase,feedback,sentences)
         xOut = (target+masker)*10^(-options.attenuation_dB/20);
         
         %Vocode as necessary:
-        if condition.vocoder > 0
-            
-            [xOut,fs] = vocodeStimulus(xOut,fs,options,condition.vocoder);
-            
-        end
+%         if condition.vocoder > 0
+%             
+%             [xOut,fs] = vocodeStimulus(xOut,fs,options,condition.vocoder);
+%             
+%         end
 
         x = audioplayer(xOut,fs,16);
         playblocking(x);

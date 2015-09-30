@@ -41,26 +41,30 @@ addpath(added_path{end});
 
 tic()
 
-nconditions = length(options.test.voices) ;
+phase = {'training', 'test'};
 
-maskerList = options.masker(1):options.masker(2);
+for j = 1:length(phase);
+    nconditions = length(options.(phase{j}).voices) ;
 
-for i = 1:nconditions
-    
-    for file = 1:length(maskerList)
-        disp('-----------')
-        disp(['File ' num2str(maskerList(file))])
-        disp('-----------')
-        disp([num2str(i) '/' num2str(nconditions)])
-        disp('-----------')
+    maskerList = options.masker(1):options.masker(2);
 
-        f0 = options.test.voices(i).f0
-        ser = options.test.voices(i).ser
+    for i = 1:nconditions
 
-        [masker,fs] = straight_process(maskerList(file), f0, ser, options);
+        for file = 1:length(maskerList)
+            disp('-----------')
+            disp(['File ' num2str(maskerList(file))])
+            disp('-----------')
+            disp([num2str(i) '/' num2str(nconditions)])
+            disp('-----------')
+
+            f0 = options.(phase{j}).voices(i).f0
+            ser = options.(phase{j}).voices(i).ser
+
+            [masker,fs] = straight_process(maskerList(file), f0, ser, options);
+
+        end
 
     end
-    
 end
 
 toc()

@@ -119,9 +119,9 @@ options.test.voice_pairs = [ones(length(options.test.voices),1), (1:length(optio
 % F0 = 8 ST, VTL = 8 ST
 options.training.voices(1).label = 'f0-8-vtl-8';
 options.training.voices(1).f0 = 2^(8/12); 
-options.training.voices(1).label = 2^(8/12);
+options.training.voices(1).ser = 2^(8/12);
 options.training.nsentences = 6; %number of training sentences per condition.
-
+options.training.TMR = 12; %dB
 options.training.voice_pairs = [ones(length(options.training.voices),1), (1:length(options.training.voices))'];
 %% --- Define sentence bank for each stimulus type:
 
@@ -218,6 +218,23 @@ end
 %% Build Experimental Conditions:
 
 rng('shuffle');
+
+%================================================== Build training block
+training = struct();
+
+%3. Define the training sentences:
+trainList = datasample(options.trainSentences,1); %Randomly select a list
+trainseq = datasample(options.list{trainList}(1):options.list{trainList}(2),options.training.nsentences*2,'Replace',false); %Randomly select n*2 sentences from the list
+
+training.training1.sentences = [trainseq(1:options.training.nsentences)];
+training.training2.sentences = [trainseq(options.training.nsentences+1:end)];
+training.train_list = trainList;
+
+training.ref_voice = options.training.voice_pairs(1, 1);
+training.dir_voice = options.training.voice_pairs(1, 2);
+training.TMR = options.training.TMR;
+
+expe.training = training;
 
 
 %================================================== Build test block
