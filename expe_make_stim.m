@@ -41,7 +41,7 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
     
     silence_gap_start = floor(0.5*fs);
     silence_gap_end = floor(0.1*fs);
-    target = [zeros(silence_gap_start,1);target]; %zero pad with silence gap of 500 ms at the beginning and 100 ms at the end.
+    target = [zeros(silence_gap_start,1);target;zeros(silence_gap_end,1)]; %zero pad with silence gap of 500 ms at the beginning and 100 ms at the end.
     
 
 end
@@ -129,8 +129,9 @@ function [masker,target,fs] = createMasker(options,trial,target,fs,varargin)
     
     %Set masker RMS:
     rmsM = rms(masker);
-    silence = floor(0.5*fs);
-    rmsT = rms(target(silence:end));
+    silence_start = floor(0.5*fs);
+    silence_end = length(target)-floor(0.1*fs);
+    rmsT = rms(target(silence_start:silence_end));
     masker = masker./rmsM.*(rmsT/10^(trial.TMR/20));
     
 

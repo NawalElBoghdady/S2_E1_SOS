@@ -120,7 +120,7 @@ options.test.voice_pairs = [ones(length(options.test.voices),1), (1:length(optio
 options.training.voices(1).label = 'f0-8-vtl-8';
 options.training.voices(1).f0 = 2^(8/12); 
 options.training.voices(1).label = 2^(8/12);
-options.training.nsentences = 3; %number of training sentences per condition.
+options.training.nsentences = 6; %number of training sentences per condition.
 
 options.training.voice_pairs = [ones(length(options.training.voices),1), (1:length(options.training.voices))'];
 %% --- Define sentence bank for each stimulus type:
@@ -282,13 +282,15 @@ for session = 1
                 condition.TMR = i_TMR;
 
                 condition.test_sentence = i_sent;
-
+                condition.test_list = ind_testList;
+                
                 condition.ref_voice = options.test.voice_pairs(1, 1);
 
                 condition.dir_voice = options.test.voice_pairs(1, 2);
 
-                condition.training1.sentences = [trainseq(1) trainseq(2) trainseq(3)];
-                condition.training2.sentences = [trainseq(4) trainseq(5) trainseq(6)];
+                condition.training1.sentences = [trainseq(1:options.training.nsentences)];
+                condition.training2.sentences = [trainseq(options.training.nsentences+1:end)];
+                condition.train_list = trainList;
 
 
                 condition.done = 0;
@@ -331,13 +333,15 @@ for session = 1
                 condition.TMR = options.unVocTMR(2);
 
                 condition.test_sentence = i_sent;
+                condition.test_list = ind_testList;
 
                 condition.ref_voice = options.test.voice_pairs(i_vp, 1);
 
                 condition.dir_voice = options.test.voice_pairs(i_vp, 2);
 
-                condition.training1.sentences = [trainseq(1) trainseq(2) trainseq(3)];
-                condition.training2.sentences = [trainseq(4) trainseq(5) trainseq(6)];
+                condition.training1.sentences = [trainseq(1:options.training.nsentences)];
+                condition.training2.sentences = [trainseq(options.training.nsentences+1:end)];
+                condition.train_list = trainList;
 
 
                 condition.done = 0;
@@ -359,7 +363,8 @@ for session = 1
     end
 end
 
-
+%Randomize all:
+test.conditions = test.conditions(randperm(length(test.conditions)));
 %====================================== Create the expe structure and save
 
 expe.test = test;

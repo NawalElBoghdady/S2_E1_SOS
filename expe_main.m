@@ -111,18 +111,20 @@ function expe_main(options, session)
 
     %% Training phase:
             %if isempty(prev_dir_voice) || prev_dir_voice ~= condition.dir_voice
-            if isempty(prev_TMR) || prev_TMR ~= condition.TMR || prev_voc ~= condition.vocoder
+%             if isempty(prev_TMR) || prev_TMR ~= condition.TMR || prev_voc ~= condition.vocoder
+            if i_condition == 1
 
+                train_condition = condition;
                 
                 %1. Train on target WITHOUT masker:
                 tic
                 phase = 'training1';
 
-                playTrain(h, options,condition,phase,1,sentences);
+                playTrain(h, options,train_condition,phase,1,sentences);
                               
                 %2. Train on target WITH masker. Give feedback.
                 phase = 'training2';
-                playTrain(h, options,condition,phase,1,sentences);
+                playTrain(h, options,train_condition,phase,1,sentences);
                 
                 toc
                 
@@ -141,7 +143,7 @@ function expe_main(options, session)
                    
             end
             
-            
+            phase = 'test';
                      
             %Construct Experimenter GUI 'g':
             g = initExpGUI(expe,options); %construct experimenter gui.
@@ -235,6 +237,10 @@ function expe_main(options, session)
 end
 
 function playTrain(h, options,condition,phase,feedback,sentences)
+    
+
+    condition.TMR = 12;
+    condition.dir_voice = 1;
     
     instr = strrep(options.instructions.( phase ), '\n', sprintf('\n'));
 
