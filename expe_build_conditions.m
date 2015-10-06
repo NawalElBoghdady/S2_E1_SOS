@@ -142,10 +142,10 @@ for i = 1:13:length(sentences)
 end
 
 %2. Define the sentence bank for each stimulus type:
-options.trainSentences = [22:24];            %indices of training lists (target)
-options.testS1 = [1:12 14:20 25 26];                     %indices of test lists Session 1 (target)
+options.trainSentences = 14;            %indices of training lists (target)
+options.testS1 = [1:12];                     %indices of test lists Session 1 (target)
 options.testS2 = options.testS1;                    %indices of test lists Session 2 (target)
-options.masker = [options.list{27}(1) options.list{31}(2)];                    %masker sentences training+test all sessions
+options.masker = [13 21 39];                    %masker sentences training+test all sessions
 
 
 
@@ -233,6 +233,7 @@ training.train_list = trainList;
 training.ref_voice = options.training.voice_pairs(1, 1);
 training.dir_voice = options.training.voice_pairs(1, 2);
 training.TMR = options.training.TMR;
+training.feedback = 1;
 
 expe.training = training;
 

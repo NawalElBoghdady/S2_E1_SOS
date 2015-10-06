@@ -225,10 +225,10 @@ function h = initExpGUI(expe,options)
         TMR = trial.TMR;
         fname = sprintf('Condition%s_Sentence%s_Voc%s_GPR%.2f_SER%.2f_TMR%d', num2str(i_condition) ,num2str(trial.test_sentence),...
             num2str(trial.vocoder) , f0, ser, TMR);
-        fname = fullfile(options.res_foldername, [fname, '.wav']);
+        fname = fullfile(options.res_foldername, [fname, '.flac']); %save as .flac for space purposes
         
         if ~exist(fname,'file')
-            audiowrite(fname,y,fs);
+            audiowrite(fname,y,fs,'BitsPerSample',24);
         end
             
    

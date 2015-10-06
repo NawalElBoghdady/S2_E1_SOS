@@ -26,7 +26,7 @@ end
 %Find all wav files that begin with 'Condition'
 current_dir = cd;
 cd(options.res_foldername);
-wavfiles = dir('*.wav');
+wavfiles = dir('*.flac');
 cd(current_dir);
 
 n = length(wavfiles);

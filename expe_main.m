@@ -120,11 +120,11 @@ function expe_main(options, session)
                 tic
                 phase = 'training1';
 
-                playTrain(h, options,training,phase,1,sentences);
+                playTrain(h, options,training,phase,training.feedback,sentences);
                               
                 %2. Train on target WITH masker. Give feedback.
                 phase = 'training2';
-                playTrain(h, options,training,phase,1,sentences);
+                playTrain(h, options,training,phase,training.feedback,sentences);
                 
                 toc
                 
@@ -294,6 +294,14 @@ function playTrain(h, options,condition,phase,feedback,sentences)
             h.hide_instruction();
             h.set_instruction([instr feedback_sent]);
             h.show_instruction();
+            pause(2); %wait for 2 sec before playing the stimulus again.
+            
+            %Play stimulus again for audio feedback:
+            x = audioplayer(xOut,fs,16);
+            playblocking(x);
+            pause(0.5);
+            
+            %Resume
             h.enable_start();
             uiwait(h.f);
             pause(0.5)

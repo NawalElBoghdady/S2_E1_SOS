@@ -45,8 +45,17 @@ phase = {'training', 'test'};
 
 for j = 1:length(phase);
     nconditions = length(options.(phase{j}).voices) ;
+    
+    maskerList = [];
+    for i_masker_list = 1:length(options.masker)
+        
+        masker_list = options.masker(i_masker_list);
+        masker_sentences = options.list{masker_list}(1):options.list{masker_list}(2);
+        maskerList = [maskerList masker_sentences];
 
-    maskerList = options.masker(1):options.masker(2);
+    end
+
+    %maskerList = options.masker(1):options.masker(2);
 
     for i = 1:nconditions
 

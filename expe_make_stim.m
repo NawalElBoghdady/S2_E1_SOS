@@ -39,9 +39,9 @@ function [target,sentence,fs] = createTarget(options,trial,phase,varargin)
     
     [target,fs] = audioread(wavIn);
     
-    silence_gap_start = floor(0.5*fs);
-    silence_gap_end = floor(0.1*fs);
-    target = [zeros(silence_gap_start,1);target;zeros(silence_gap_end,1)]; %zero pad with silence gap of 500 ms at the beginning and 100 ms at the end.
+    silence_gap_start = floor(0.5*fs); %500ms silence at the beginning of the target.
+    silence_gap_end = floor(0.25*fs); %250ms silence at the end of the target.
+    target = [zeros(silence_gap_start,1);target;zeros(silence_gap_end,1)]; %zero pad with silence gap of 500 ms at the beginning and 250 ms at the end.
     
 
 end
@@ -53,25 +53,32 @@ function [masker,target,fs] = createMasker(options,trial,phase,target,fs,varargi
     %Target and masker should be the same length to be added later.  
 
     stim_dir = options.tmp_path;
-    bank_start = options.masker(1);
-    bank_end = options.masker(2);
+    
+    sentence_bank = [];
+    for i_masker_list = 1:length(options.masker)
+        
+        masker_list = options.masker(i_masker_list);
+        masker_sentences = options.list{masker_list}(1):options.list{masker_list}(2);
+        sentence_bank = [sentence_bank masker_sentences];
+%         bank_start = options.masker(1);
+%         bank_end = options.masker(2);
+    end
     
     
-    %Extract chunks from 4 random sentences. 4 was chosen to have a
-    %masker that is almost always longer than (or as long as) the target. That way, it is easier
-    %to chop up the masker at the end to make it as long as the target:
-    %nsentences = 4;
+    %Randomize sentences:
     
-    sentence_bank = bank_start:bank_end;
-    sentence_bank = sentence_bank(randperm(length(sentence_bank)));
+    %sentence_bank = bank_start:bank_end;
+    %sentence_bank = sentence_bank(randperm(length(sentence_bank)));
     
     masker = [];
-    i = 1;
     
     while length(masker) < length(target)
+        %Pick a random sentence from the masker sentence_bank:
+        i = datasample(sentence_bank,1);
+        
         f0 = options.(phase).voices(trial.dir_voice).f0;
         ser = options.(phase).voices(trial.dir_voice).ser;
-        filename = make_fname([num2str(sentence_bank(i)) '.wav'], f0, ser, stim_dir);
+        filename = make_fname([num2str(i) '.wav'], f0, ser, stim_dir);
         [y,fs] = audioread(filename);
         
         %Take chunk sizes that are at least 1 sec long
@@ -102,35 +109,26 @@ function [masker,target,fs] = createMasker(options,trial,phase,target,fs,varargi
         
         masker = [masker; chunk];
         
-        i = i+1;
         
     end
     
     
-%    Set masker length = target length:
+%   Set lenght of masker vector = length of target vector. This makes sure
+%   that only the vectors are of equal length so that we could add them.
+%   However, length of the masker SIGNAL (actual speech) and target SIGNAL
+%   are NOT the same:
     if length(masker) >= length(target)
       
         masker = masker(1:length(target)); %chop it off if it is too long
-      
-%     elseif length(masker) < length(target)
-%         
-%         while length(masker) < length(target)
-%             masker = [masker; masker];
-%         end
-%         masker = masker(1:length(target)); 
-%         
-%         if length(masker) ~= length(target)
-%             error('We have a problem!!!');
-%         end
         
     end
     
-    masker = cosgate(masker, fs, 250e-3); %250ms cosine ramp.
+    masker = cosgate(masker, fs, 50e-3); %50ms cosine ramp to both beginning and end of masker signal.
     
     %Set masker RMS:
     rmsM = rms(masker);
     silence_start = floor(0.5*fs);
-    silence_end = length(target)-floor(0.1*fs);
+    silence_end = length(target)-floor(0.25*fs);
     rmsT = rms(target(silence_start:silence_end));
     masker = masker./rmsM.*(rmsT/10^(trial.TMR/20));
     
