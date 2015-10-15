@@ -207,7 +207,7 @@ elseif subj_group == 1
     
     %--- Define Target-to-Masker Ratio in dB:
     options.unVocTMR = [5 10 15];
-    options.VocTMR = [5 10 15];
+    options.VocTMR = options.unVocTMR;
     %This protocol was adopted from Mike and Nikki's Musician effect on SOS
     %performance; TMR values taken from Pals et al. 2015, and Stickney et al.
     %2004

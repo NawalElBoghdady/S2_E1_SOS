@@ -13,10 +13,13 @@ h = struct();
     if ~is_test_machine
         left = scrsz(1); bottom = scrsz(2); width = scrsz(3); height = scrsz(4);
     else
-        left = -1024; bottom=0; width=1024; height=768;
+          left = -1024; bottom=0; width=1024; height=768;
+        %left = scrsz(1); bottom = scrsz(2); width = scrsz(3); height = scrsz(4);
+        
     end
     
     scrsz = [left, bottom, width, height];
+    %scrsz = [-1024 0 1024 10];
     n_rows = 1; 
     n_cols = 3; 
     grid_sz = [n_cols, n_rows]*300;
@@ -82,7 +85,7 @@ h = struct();
         nButtons = length(buttonName);
 
         xPos = (0.05:0.1:1.5)';
-        yPos = 0.5;
+        yPos = 0.3;
         [X,Y] = meshgrid(xPos,yPos);
 
         buttonwidth = 0.08;

@@ -243,7 +243,7 @@ function h = initExpGUI(expe,options)
         
         %%%%%%%%%%%%%%%%%%%%%%%
 %        RECORD TRIAL (STIMULUS + RESPONSE):
-        h.recObj = audiorecorder(22050,24,1,0);
+        h.recObj = audiorecorder(44100,24,1,0);
         disp('Recording...')
         record(h.recObj);
        % play(h.recObj);

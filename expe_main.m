@@ -59,9 +59,10 @@ function expe_main(options, session)
     sentences = sentences.(name);
     
     %Assign 4 scheduled breaks:
-    breaktime = floor(length(expe.test.conditions)/5);
+    nbreaks = 4;
+    breaktime = floor(length(expe.test.conditions)/(nbreaks+1));
     breaktime_trials = [breaktime:breaktime:length(expe.test.conditions)];
-    breaktime_trials = breaktime_trials(1:4);
+    breaktime_trials = breaktime_trials(1:nbreaks);
     
     
     prev_voc = 0;
@@ -120,11 +121,11 @@ function expe_main(options, session)
                 tic
                 phase = 'training1';
 
-                playTrain(h, options,training,phase,training.feedback,sentences);
+                %playTrain(h, options,training,phase,training.feedback,sentences);
                               
                 %2. Train on target WITH masker. Give feedback.
                 phase = 'training2';
-                playTrain(h, options,training,phase,training.feedback,sentences);
+                %playTrain(h, options,training,phase,training.feedback,sentences);
                 
                 toc
                 
